@@ -8,6 +8,7 @@ public class GA_Algorithm {
     private static final int INFINITE = 0x6fffffff;
     //总的虚拟机数量
     protected static int M;
+    //物理机的总数量
     protected static int N;
     //虚拟机在bucket code 里的编号和虚拟网络中编号的映射
     protected static VNode[] VM_index;
@@ -362,6 +363,39 @@ public class GA_Algorithm {
             }
         }
         return bucket;
+    }
+
+    //判断bucket code是否有效
+    protected boolean WeatherEffectBucketCode(Bucket bucket){
+        //首先找出可用资源最小的物理机（这里指CPU的资源）
+        double phyicalNodeRes = 0;
+        for (int i = 0; i <physicalGraph.Node ; i++) {
+            if(physicalGraph.NodeCapacity[i].cpu>phyicalNodeRes)
+                phyicalNodeRes = physicalGraph.NodeCapacity[i].cpu;
+        }
+        //然后找出总消耗资源最大的虚拟机组（bucket）
+        double MaxbucketNeed = 0;
+        for (int i = 0; i <M ; i++) {
+            if(bucket.first[i]){
+                double temp = 0;
+                for (int j = 0; j <M ; j++) {
+                    if(bucket.second[j]==i){
+                        temp+=VM_index[j].load.cpu;
+                    }
+                }
+                if(temp>MaxbucketNeed)
+                    MaxbucketNeed = temp;
+            }
+        }
+        if(phyicalNodeRes>MaxbucketNeed)
+            return true;
+        else
+            return false;
+    }
+
+    //利用遗传算法，找出最佳的bucket code
+    protected Bucket FindBestCodeWithGA(){
+        return null;
     }
 
 
