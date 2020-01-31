@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Random;
 
 public class Util {
-    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\20.brite";
+    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\test.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
-    public int VGnum = 40;
+    public int VGnum = 4;
     public double cpu_mean = 100;
     public double cpu_square = 10;
     public double mem_mean = 10;
@@ -39,11 +39,14 @@ public class Util {
             physicalGraph.NodeCapacity = new Load[physicalGraph.Node];
             physicalGraph.EdgeCapacity = new double[physicalGraph.Node][physicalGraph.Node];
             physicalGraph.VMInPM = new List[physicalGraph.Node];
-
+            physicalGraph.maxLoads = new Load[physicalGraph.Node];
             for (int i = 0; i <physicalGraph.Node ; i++) {
                 physicalGraph.NodeCapacity[i] = new Load();
                 Arrays.fill(physicalGraph.EdgeCapacity[i],-1);
                 physicalGraph.VMInPM[i] = new ArrayList<>();
+                physicalGraph.maxLoads[i] = new Load();
+                physicalGraph.maxLoads[i].cpu = random.nextInt(20)+300;
+                physicalGraph.maxLoads[i].mem = random.nextDouble()+30;
             }
 //
 //            for (int i = 0; i < physicalGraph.Node; i ++){
@@ -141,12 +144,14 @@ public class Util {
 
     //首先构造初始情况，随机把所有虚拟节点映射到物理节点
     public void Mapping(PhysicalGraph physicalGraph,VirtualGraph virtualGraph){
+
         virtualGraph.VN2PN = new int[virtualGraph.Node];
         Arrays.fill(virtualGraph.VN2PN,-1);
         //这里选择把一个虚拟机随机映射到某一个物理机上
         for (int i = 0; i <virtualGraph.Node ; i++) {
             Random rd = new Random();
             int random = rd.nextInt(physicalGraph.Node);
+            System.out.println("虚拟节点"+i+"对应物理节点"+random);
             virtualGraph.VN2PN[i] = random;
             physicalGraph.VMInPM[random].add(new VNode(i,virtualGraph.NodeCapacity[i],virtualGraph.id));
             physicalGraph.NodeCapacity[random].cpu += virtualGraph.NodeCapacity[i].cpu;

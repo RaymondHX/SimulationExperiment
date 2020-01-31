@@ -3,6 +3,7 @@ package Exp2;
 
 
 import java.util.List;
+import java.util.Random;
 
 public class PhysicalGraph {
     //节点数量
@@ -16,4 +17,8 @@ public class PhysicalGraph {
 
     //每个物理机上都有哪些虚拟机
     protected List<VNode> VMInPM[];
+
+    //最大负载
+    protected Load[] maxLoads;
+
 }

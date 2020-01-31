@@ -15,4 +15,18 @@ public class Bucket {
         first = new boolean[M];
         second = new int[M];
     }
+
+
+    public void sout() {
+        for (int i = 0; i <first.length ; i++) {
+            if(first[i]){
+                System.out.println("底部元素："+i);
+            }
+        }
+        for (int i = 0; i <second.length ; i++) {
+            if (second[i]!=-1){
+                System.out.println("第"+i+"台虚拟机"+"对应buttom element"+second[i]);
+            }
+        }
+    }
 }
