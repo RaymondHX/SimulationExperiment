@@ -16,6 +16,19 @@ public class Bucket {
         second = new int[M];
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        Bucket bucket = (Bucket)obj;
+        for (int i = 0; i <this.first.length ; i++) {
+           if(this.first[i]!=bucket.first[i])
+               return false;
+        }
+        for (int i = 0; i <bucket.second.length ; i++) {
+            if (this.second[i]!=bucket.second[i])
+                return false;
+        }
+        return true;
+    }
 
     public void sout() {
         for (int i = 0; i <first.length ; i++) {

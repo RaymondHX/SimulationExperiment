@@ -1,5 +1,6 @@
 package Exp2;
 
+import javax.swing.plaf.basic.BasicScrollPaneUI;
 import java.util.*;
 
 public class GA_Algorithm {
@@ -393,8 +394,145 @@ public class GA_Algorithm {
             return false;
     }
 
+    //把bucket code的第一部分转化为一个二进制字符串
+    protected String changeToBinaryString(boolean[] first){
+        StringBuilder stringBuilder = null;
+        for (int i = 0; i <first.length ; i++) {
+            if(first[i])
+                stringBuilder.append("1");
+            else
+                stringBuilder.append("0");
+        }
+        return stringBuilder.toString();
+    }
+
     //利用遗传算法，找出最佳的bucket code
     protected Bucket FindBestCodeWithGA(){
+        //以最多每台物理机八台虚拟机的标准，得到最少需要多少台物理机
+        int minPM = M%8+1;
+        //存储按种族划分的所有的基因
+        Map<String,List<Bucket>> species = new HashMap<>();
+        //存储每个种族的最优通信开销
+        Map<String,Double> minCommucationCosts = new HashMap<>();
+        //存储每个种族最优通信开销的bucket
+        Map<String,Bucket> minCommuvationBuckets = new HashMap<>();
+        //存储每个种族的最优迁移开销
+        Map<String,Double> minMigrationCosts = new HashMap<>();
+        //存储每个种族的最优迁移开销的bucket
+        Map<String,Bucket> minMigrationBucket = new HashMap<>();
+        //存储这个种族中通信开销最优基因未更新次数
+        Map<String,Integer> updateTimesComm = new HashMap<>();
+        //存储这个种族中迁移开销最优基因未更新次数
+        Map<String,Integer> updateTimesMir = new HashMap<>();
+        //计算在使用不同物理机下算出的最优基因
+        for (int i = minPM; i <=N ; i++) {
+            //初始时产生10个初始基因
+            for (int j = 0; j <10 ; j++) {
+                Bucket bucket = MakeBucketCode(M,i);
+                //如果这个bucket符合要求
+                if(WeatherEffectBucketCode(bucket)){
+                    if(species.get(changeToBinaryString(bucket.first))!=null){
+                        species.get(changeToBinaryString(bucket.first)).add(bucket);
+                    }
+                    else {
+                        species.put(changeToBinaryString(bucket.first),new ArrayList<>());
+                        species.get(changeToBinaryString(bucket.first)).add(bucket);
+                    }
+                }
+                else
+                    j--;
+
+            }
+            //然后不断进行迭代，知道所有种族中最优基因没有变化
+            while(true){
+                //首先每一代计算每个基因的通信开销和迁移开销
+                for(Map.Entry<String,List<Bucket>> entry:species.entrySet()){
+                    double mintempCom = INFINITE;
+                    double mintempMir = INFINITE;
+                    Bucket tempBucketComm = null;
+                    Bucket tempBucketMir = null;
+                    for(Bucket bucket:entry.getValue()){
+                        int bestCommunicationIndex = 0;
+                        int bestMigrattionIndex = 0;
+                        if (CalCommunicationCost(bucket)<mintempCom){
+                            mintempCom = CalCommunicationCost(bucket);
+                            tempBucketComm = bucket;
+                        }
+                        //利用KM算法求出最优匹配，从而才能计算迁移开销
+                        int[] matches = KM(bucket,N,M);
+                        if(CalMigrationCost(bucket,matches,VM_index)<mintempMir){
+                            mintempMir = CalMigrationCost(bucket,matches,VM_index);
+                            tempBucketMir = bucket;
+                        }
+                    }
+                    //原来这个种族没有算过最小通信开销
+                    if(minCommucationCosts.get(entry.getKey())==null){
+                        minCommucationCosts.put(entry.getKey(),mintempCom);
+                        minCommuvationBuckets.put(entry.getKey(),tempBucketComm);
+                        //那么同样肯定也没计算过迁移开销
+                        minMigrationCosts.put(entry.getKey(),mintempMir);
+                        minMigrationBucket.put(entry.getKey(),tempBucketMir);
+                    }
+                    else {
+                        //这一代的最小通信开销与上一代相同
+                        if (minCommucationCosts.get(entry.getKey()) ==mintempCom){
+                            if(updateTimesComm.get(entry.getKey())!=null){
+                                int old = updateTimesComm.get(entry.getKey());
+                                updateTimesComm.put(entry.getKey(),old+1);
+                            }
+                            else {
+                                updateTimesComm.put(entry.getKey(),1);
+                            }
+                        }
+                        else {
+                            minCommucationCosts.put(entry.getKey(),mintempCom);
+                            minCommuvationBuckets.put(entry.getKey(),tempBucketComm);
+                        }
+                        //这一代中迁移开销与上一代相同
+                        if(minMigrationCosts.get(entry.getKey()) ==mintempMir){
+                            if(updateTimesMir.get(entry.getKey())!=null){
+                                int old = updateTimesMir.get(entry.getKey());
+                                updateTimesMir.put(entry.getKey(),old+1);
+                            }
+                            else {
+                                updateTimesMir.put(entry.getKey(),1);
+                            }
+                        }
+                    }
+                }
+                //根据计算出的通信开销和迁移开销，选出最优基因，并根据这个基因，让其他基因学习
+                for (Map.Entry<String,List<Bucket>> entry:species.entrySet()){
+                    Random random = new Random();
+                    int possiblity = random.nextInt(100);
+                    //一半的可能性从通信开销最小的学习
+                    if (possiblity>50){
+                        //得到最优的bucket
+                        Bucket bestBucket = minCommuvationBuckets.get(entry.getKey());
+                        if(entry.getValue().size()>1){
+                            for (int j = 0; j <entry.getValue().size() ; j++) {
+                                Bucket old = entry.getValue().get(j);
+                                Bucket newBucket = LearnFromSameSpecie(bestBucket,old);
+                                entry.getValue().set(j,newBucket);
+                            }
+                        }
+                    }
+                    //其余时候从最小迁移开销中学习
+                    else {
+                        Bucket bestBucket = minMigrationBucket.get(entry.getKey());
+                        if(entry.getValue().size()>1){
+                            for (int j = 0; j <entry.getValue().size() ; j++) {
+                                Bucket old = entry.getValue().get(j);
+                                Bucket newBucket = LearnFromSameSpecie(bestBucket,old);
+                                entry.getValue().set(j,newBucket);
+                            }
+                        }
+                    }
+                }
+
+                //适当时候对种族内某些基因进行变异
+
+            }
+        }
         return null;
     }
 
