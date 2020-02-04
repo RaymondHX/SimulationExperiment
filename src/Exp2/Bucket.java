@@ -30,6 +30,14 @@ public class Bucket {
         return true;
     }
 
+    public boolean isEqaulFirst(boolean[] another){
+        for (int i = 0; i <this.first.length ; i++) {
+            if(this.first[i]!=another[i])
+                return false;
+        }
+        return true;
+    }
+
     public void sout() {
         for (int i = 0; i <first.length ; i++) {
             if(first[i]){

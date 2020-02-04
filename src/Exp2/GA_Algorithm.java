@@ -347,6 +347,7 @@ public class GA_Algorithm {
 
     //对bucket code 进行变异处理
     protected Bucket Mutate(Bucket bucket){
+        Bucket Temp = bucket;
         List<Integer> bottomElements = new ArrayList<>();
         for (int i = 0; i <M ; i++) {
             if(bucket.first[i])
@@ -356,14 +357,18 @@ public class GA_Algorithm {
         for (int i = 0; i <M ; i++) {
             if(bucket.second[i]!=-1){
                 int possibility = random.nextInt(100);
-                //每一个第二部分的值以20%的可能性变异
-                if(possibility>0&&possibility<20){
+                //每一个第二部分的值以30%的可能性变异
+                if(possibility>0&&possibility<30){
                     int index = random.nextInt(bottomElements.size());
                     bucket.second[i] = index;
                 }
             }
         }
-        return bucket;
+        //变异后有效
+        if(WeatherEffectBucketCode(bucket))
+            return bucket;
+        else
+            return Temp;
     }
 
     //判断bucket code是否有效
@@ -530,6 +535,40 @@ public class GA_Algorithm {
                 }
 
                 //适当时候对种族内某些基因进行变异
+                for(Map.Entry<String,List<Bucket>> entry :species.entrySet()){
+                    Random random = new Random();
+                    for (int j = 0; j <entry.getValue().size() ; j++) {
+                        //每个以50%的概率变异
+                        if(random.nextInt(100)>50){
+                            entry.getValue().set(j,Mutate(entry.getValue().get(j)));
+                        }
+                    }
+
+                }
+
+                //判断是否有种族5代都没有更新
+                boolean commBool= false;
+                String Gene = null;
+                for(Map.Entry<String,Integer> entry:updateTimesComm.entrySet()){
+                    if(entry.getValue()>=5){
+                        commBool = true;
+                        Gene = entry.getKey();
+                        break;
+                    }
+                }
+                //如果存在这样的种族，则代表这个种族已经进化到最优，去除这个种族（并且产生一个新种族）
+                if(commBool){
+                    species.remove(Gene);
+                    //产生一个新的基因
+                    while (true){
+                        Bucket newGene = MakeBucketCode(M,i);
+                        if(species.get(changeToBinaryString(newGene.first))==null){
+                            species.put(changeToBinaryString(newGene.first),new ArrayList<>());
+                            break;
+                        }
+
+                    }
+                }
 
             }
         }
