@@ -10,6 +10,7 @@ import java.util.Queue;
 public class Transfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
+    public double migrationCost = 0;
     Util util = new Util();
 
     public  Transfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
@@ -29,6 +30,8 @@ public class Transfer {
                 physicalGraph.VMInPM[oldPhysicalNode].remove(i);
                 physicalGraph.NodeCapacity[oldPhysicalNode].cpu -= virtualGraphs[VGnum].NodeCapacity[virtualNode].cpu;
                 physicalGraph.NodeCapacity[oldPhysicalNode].mem -= virtualGraphs[VGnum].NodeCapacity[virtualNode].mem;
+                //计算一次迁移开销
+                migrationCost  += vNode.load.mem;
                 break;
             }
         }
@@ -125,5 +128,9 @@ public class Transfer {
         }
     }
 
+
+    public double getMigrationCost(){
+        return migrationCost;
+    }
 
 }

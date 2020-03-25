@@ -76,8 +76,9 @@ public class GA_Algorithm {
             if(prob>=0&&prob<5&&!bucket.first[i]){
                 bucket.first[i] = true;
                 num++;
-                if(num==N)
+                if(num==N){
                     break;
+                }
             }
             if(i+1==M&&num<N){
                 i = 0;
@@ -278,9 +279,9 @@ public class GA_Algorithm {
         return MigrationCost;
     }
 
-    //计算通信开销(目前还没定义好，这里bucket的hashcode代替)
+    //计算通信开销(使用SLAV计算)
     protected double CalCommunicationCost(Bucket bucket){
-        return bucket.hashCode();
+        return 0;
     }
 
     //使用优先队列实现dijkstra算法找到两点间的最短路径
@@ -444,9 +445,9 @@ public class GA_Algorithm {
                         species.get(changeToBinaryString(bucket.first)).add(bucket);
                     }
                 }
-                else
+                else {
                     j--;
-
+                }
             }
             //然后不断进行迭代，知道所有种族中最优基因没有变化
             while(true){
