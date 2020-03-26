@@ -11,6 +11,7 @@ public class Transfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
+    public int migrationTime = 0;
     Util util = new Util();
 
     public  Transfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
@@ -20,6 +21,7 @@ public class Transfer {
 
     //把一个虚拟机迁移到另一台物理机上
     public void TransferVirtualNode(int VGnum,int virtualNode,int newPhysicalNode){
+        migrationTime++;
         System.out.println("迁移第"+VGnum+"个虚拟网络上"+"第"+virtualNode+"个"+"虚拟机"+"到物理机"+newPhysicalNode);
         int oldPhysicalNode = virtualGraphs[VGnum].VN2PN[virtualNode];
         VNode vNode = null;
@@ -28,8 +30,8 @@ public class Transfer {
             if(physicalGraph.VMInPM[oldPhysicalNode].get(i).id == virtualNode){
                 vNode = physicalGraph.VMInPM[oldPhysicalNode].get(i);
                 physicalGraph.VMInPM[oldPhysicalNode].remove(i);
-                physicalGraph.NodeCapacity[oldPhysicalNode].cpu -= virtualGraphs[VGnum].NodeCapacity[virtualNode].cpu;
-                physicalGraph.NodeCapacity[oldPhysicalNode].mem -= virtualGraphs[VGnum].NodeCapacity[virtualNode].mem;
+                physicalGraph.nodeLoad[oldPhysicalNode].cpu -= vNode.load.cpu;
+                physicalGraph.nodeLoad[oldPhysicalNode].mem -= vNode.load.mem;
                 //计算一次迁移开销
                 migrationCost  += vNode.load.mem;
                 break;
@@ -37,8 +39,8 @@ public class Transfer {
         }
         //在新物理机上添加这个虚拟机
         physicalGraph.VMInPM[newPhysicalNode].add(vNode);
-        physicalGraph.NodeCapacity[newPhysicalNode].cpu += virtualGraphs[VGnum].NodeCapacity[virtualNode].cpu;
-        physicalGraph.NodeCapacity[newPhysicalNode].mem += virtualGraphs[VGnum].NodeCapacity[virtualNode].mem;
+        physicalGraph.nodeLoad[newPhysicalNode].cpu += vNode.load.cpu;
+        physicalGraph.nodeLoad[newPhysicalNode].mem += vNode.load.mem;
 
         //修改虚拟网络到物理网络的映射
         virtualGraphs[VGnum].VN2PN[virtualNode] = newPhysicalNode;
@@ -84,7 +86,8 @@ public class Transfer {
                     //首先找绿色的边迁移，有多条时选择最短的
                     for (int j = 0; j <physicalGraph.Node ; j++) {
                         //System.out.println(dis[j]);
-                        if(physicalGraph.Color[PMid][j].equals("green")){
+                        if(physicalGraph.Color[PMid][j].equals("green")
+                                &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
                             if(dis[j]<min_dis){
                                 min_dis = dis[j];
                                 newPM = j;
@@ -97,7 +100,8 @@ public class Transfer {
                     else {
                         //没有绿边时选择黄边
                         for (int j = 0; j <physicalGraph.Node ; j++) {
-                            if(physicalGraph.Color[PMid][j].equals("yellow")){
+                            if(physicalGraph.Color[PMid][j].equals("yellow")
+                                    &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
                                 if(dis[j]<min_dis){
                                     min_dis = dis[j];
                                     newPM = j;
@@ -110,7 +114,8 @@ public class Transfer {
                         else {
                             //没有黄边时选择蓝边
                             for (int j = 0; j <physicalGraph.Node ; j++) {
-                                if(physicalGraph.Color[PMid][j].equals("blue")){
+                                if(physicalGraph.Color[PMid][j].equals("blue")
+                                        &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
                                     if(dis[j]<min_dis){
                                         min_dis = dis[j];
                                         newPM = j;

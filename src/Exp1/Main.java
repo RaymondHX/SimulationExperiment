@@ -7,7 +7,7 @@ public class Main {
     public static PhysicalGraph physicalGraph = new PhysicalGraph();
     public static VirtualGraph virtualGraphs[] = new VirtualGraph[50];
     public static Util util = new Util();
-    public static int VGnum = 5;
+    public static int VGnum = 35;
     public static double totalCostBefore = 0;
     public static double totlalCostAfter = 0;
     public static void main(String[] args) {
@@ -50,6 +50,7 @@ public class Main {
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(physicalGraph.temperature[i].temperature!=0){
                 result = false;
+                break;
             }
         }
         return result;
