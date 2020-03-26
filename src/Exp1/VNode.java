@@ -6,7 +6,7 @@ public class VNode {
     public int id;
     public Load load;
     public int VGnum;
-    VNode(int id,Load load,int VGnum){
+    public VNode(int id,Load load,int VGnum){
         this.id = id;
         this.load = load;
         this.VGnum = VGnum;

@@ -1,18 +1,23 @@
 package Exp2;
 
-import javax.swing.plaf.basic.BasicScrollPaneUI;
+
+import Exp1.PhysicalGraph;
+import Exp1.Util;
+import Exp1.VNode;
+import Exp1.VirtualGraph;
+
 import java.util.*;
 
 public class GA_Algorithm {
-    protected static PhysicalGraph physicalGraph;
-    protected static VirtualGraph virtualGraphs[];
+    public static PhysicalGraph physicalGraph;
+    public static VirtualGraph virtualGraphs[];
     private static final int INFINITE = 0x6fffffff;
     //总的虚拟机数量
-    protected static int M;
+    public static int M;
     //物理机的总数量
-    protected static int N;
+    public static int N;
     //虚拟机在bucket code 里的编号和虚拟网络中编号的映射
-    protected static VNode[] VM_index;
+    public static VNode[] VM_index;
 
     static int index_x[];
     static int index_y[];
@@ -32,7 +37,7 @@ public class GA_Algorithm {
     //记录任意两点之间最短路径的数组
     static int map[][];
 
-    GA_Algorithm(PhysicalGraph physicalGraph,VirtualGraph[] virtualGraphs,int M,int N){
+    public GA_Algorithm(PhysicalGraph physicalGraph,VirtualGraph[] virtualGraphs,int M,int N){
         this.physicalGraph = physicalGraph;
         this.virtualGraphs = virtualGraphs;
         this.N = N;
@@ -48,13 +53,10 @@ public class GA_Algorithm {
     }
 
     //完成VM_index中的映射
-    protected void FillVM_Index(){
-        for (int i = 0; i <virtualGraphs.length ; i++) {
-            M+= virtualGraphs[i].Node;
-        }
+    public void FillVM_Index(){
         VM_index = new VNode[M];
         int k = 0;
-        for (int i = 0; i <virtualGraphs.length ; i++) {
+        for (int i = 0; i <35 ; i++) {
             for (int j = 0; j <virtualGraphs[i].Node ; j++) {
                 VM_index[k] = new VNode(j,virtualGraphs[i].NodeCapacity[j],virtualGraphs[i].id);
                 k++;
@@ -63,12 +65,20 @@ public class GA_Algorithm {
         }
     }
 
-    //随机生成的bucket code
-    protected Bucket MakeBucketCode(int M,int N){
+    //随机生成的bucket code，约定云端物理机一定被选中
+    public Bucket MakeBucketCode(int M,int N){
         Bucket bucket = new Bucket(M, N);
         Random random = new Random();
-        int num = 1;
-        bucket.first[0] = true;
+//        int num = 1;
+//        bucket.first[0] = true;
+        int num = 0;
+        //首先把云主机加入
+        for (int i = 0; i <M ; i++) {
+            if(i%10==0){
+                bucket.first[i]=true;
+                num++;
+            }
+        }
         //第一部分编码
         for (int i = 1; i <M ; i++) {
             int prob = random.nextInt(10);
@@ -101,7 +111,7 @@ public class GA_Algorithm {
 
 
     //利用KM算法，计算得到最佳的匹配方式
-    protected int[] KM(Bucket bucket,int N, int M){
+    public int[] KM(Bucket bucket,int N, int M){
         int N_1 = 0;
         //完成二分图的构建
         for (int i = 0; i <M ; i++) {
@@ -141,14 +151,14 @@ public class GA_Algorithm {
             }
             for (int j = 0; j <N ; j++) {
                 //如果这个bucket的虚拟机总负载大于这台物理机的最大负载，这条边不存在
-                if(cpu>physicalGraph.maxLoads[j].cpu){
+                if(cpu>physicalGraph.NodeCapacity[j].cpu){
                     bucketToPM[N_1][j] = -1;
                 }
             }
         }
         for (int i = 0; i <N ; i++) {
             for (int j = 0; j <N ; j++) {
-                System.out.println("bucket"+i+"与物理机"+j+"的边"+bucketToPM[i][j]);
+//                System.out.println("bucket"+i+"与物理机"+j+"的边"+bucketToPM[i][j]);
             }
         }
         //完成顶点标杆的实现
@@ -165,8 +175,8 @@ public class GA_Algorithm {
             index_y[i] =0;
         }
         for (int i = 0; i <N ; i++) {
-            System.out.println("第"+i+"个X顶点顶标"+index_x[i]);
-            System.out.println("第"+i+"个y顶点顶标"+index_y[i]);
+//            System.out.println("第"+i+"个X顶点顶标"+index_x[i]);
+//            System.out.println("第"+i+"个y顶点顶标"+index_y[i]);
 
         }
         //bucket点的匹配情况
@@ -200,14 +210,14 @@ public class GA_Algorithm {
 
             }
         }
-        for (int i = 0; i <N ; i++) {
-            System.out.println("第"+i+"个物理机对应"+match[i]);
-        }
+//        for (int i = 0; i <N ; i++) {
+//             System.out.println("第"+i+"个物理机对应"+match[i]);
+//        }
         return match;
     }
 
     //KM算法中计算路径
-    protected boolean DFS(int i){
+    public boolean DFS(int i){
         //这个X顶点在循环中被访问
         used_x[i] = true;
 
@@ -237,42 +247,32 @@ public class GA_Algorithm {
 
 
     //计算原部署方案到某一个bucket迁移开销
-    protected double CalMigrationCost(Bucket bucket,int[] match,VNode[] index){
+    public double CalMigrationCost(Bucket bucket,int[] match,VNode[] index){
         double MigrationCost = 0;
-        for (int i = 0; i <match.length ; i++) {
-            //第i个物理机对应的bottom element
-            int buttomElement = match[i];
-            List<Integer> buttoms = new ArrayList<>();
-            buttoms.add(buttomElement);
-            for (int j = 0; j <N ; j++) {
-                if(bucket.second[j]==buttomElement){
-                    buttoms.add(j);
-                }
-            }
-            List<VNode> Vnodes = physicalGraph.VMInPM[i];
-            for (Integer inte:buttoms) {
-                boolean isThere = false;
-                for (VNode vnode:Vnodes) {
-                    if(index[inte].VGnum==vnode.VGnum&&index[inte].id==vnode.id){
-                        isThere = true;
-                        break;
-                    }
-                }
-                //bucket中这台虚拟机需要迁移
-                if(!isThere){
-                    //找到这台虚拟机原来所在的物理机
-                    for (int j = 0; j <N ; j++) {
-                        for (int k = 0; k <physicalGraph.VMInPM[j].size() ; k++) {
-                            if(index[inte].VGnum==physicalGraph.VMInPM[j].get(k).VGnum
-                                    &&index[inte].id==physicalGraph.VMInPM[j].get(k).id){
-                                //计算迁移这台机器的迁移开销
-                                double dis[] = FindMinPath(physicalGraph,j);
-                                double distance = dis[k];
-                                MigrationCost += index[inte].load.mem*distance;
-                                break;
+        int pointer = 0;
+        int count = 0;
+        while (count<match.length){
+            for (int i = pointer; i <bucket.first.length ; i++) {
+                if(bucket.first[i]){
+                    pointer = i+1;
+                    for (int j = 0; j <bucket.second.length ; j++) {
+                        if(bucket.second[j]==i){
+                            VNode node = index[j];
+                            int PM = match[count];
+                            boolean find = false;
+                            for (int k = 0; k <physicalGraph.VMInPM[PM].size() ; k++) {
+                                //这台虚拟机就在那台物理机上，不需要迁移
+                                if(physicalGraph.VMInPM[PM].get(k).id==node.id&&
+                                        physicalGraph.VMInPM[PM].get(k).VGnum==node.VGnum){
+                                    find = true;
+                                }
+                            }
+                            if(!find){
+                                MigrationCost+= node.load.mem;
                             }
                         }
                     }
+                    count++;
                 }
             }
         }
@@ -280,12 +280,25 @@ public class GA_Algorithm {
     }
 
     //计算通信开销(使用SLAV计算)
-    protected double CalCommunicationCost(Bucket bucket){
-        return 0;
+    public double CalCommunicationCost(PhysicalGraph physicalGraph){
+        double result = 0;
+        for (int i = 0; i <physicalGraph.Node ; i++) {
+            //如果某个节点过载，则计算一个SLAV
+            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
+                double average = physicalGraph.NodeCapacity[i].cpu/physicalGraph.VMInPM[i].size();
+                for (int j = 0; j <physicalGraph.VMInPM[i].size() ; j++) {
+                    //这台虚拟机的需求大于物理机给他的分配
+                    if(physicalGraph.VMInPM[i].get(j).load.cpu>average){
+                        result += (physicalGraph.VMInPM[i].get(j).load.cpu-average)/physicalGraph.VMInPM[i].get(j).load.cpu;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     //使用优先队列实现dijkstra算法找到两点间的最短路径
-    protected   double[] FindMinPath(PhysicalGraph physicalGraph, int from){
+    public   double[] FindMinPath(PhysicalGraph physicalGraph, int from){
         Queue<Node> queue = new PriorityQueue<>();
         double dis[] = new double[physicalGraph.Node];
         boolean visited[] = new boolean[physicalGraph.Node];
@@ -330,7 +343,7 @@ public class GA_Algorithm {
     }
 
     //同一个种族，从这个种族中表现最好的bucket code学习
-    protected Bucket LearnFromSameSpecie(Bucket best,Bucket learn){
+    public Bucket LearnFromSameSpecie(Bucket best,Bucket learn){
         Random random = new Random();
         for (int i = 0; i <M ; i++) {
             if (best.second[i]!=-1){
@@ -347,7 +360,7 @@ public class GA_Algorithm {
 
 
     //对bucket code 进行变异处理
-    protected Bucket Mutate(Bucket bucket){
+    public Bucket Mutate(Bucket bucket){
         Bucket Temp = bucket;
         List<Integer> bottomElements = new ArrayList<>();
         for (int i = 0; i <M ; i++) {
@@ -373,7 +386,7 @@ public class GA_Algorithm {
     }
 
     //判断bucket code是否有效
-    protected boolean WeatherEffectBucketCode(Bucket bucket){
+    public boolean WeatherEffectBucketCode(Bucket bucket){
         //首先找出可用资源最小的物理机（这里指CPU的资源）
         double phyicalNodeRes = 0;
         for (int i = 0; i <physicalGraph.Node ; i++) {
@@ -401,8 +414,8 @@ public class GA_Algorithm {
     }
 
     //把bucket code的第一部分转化为一个二进制字符串
-    protected String changeToBinaryString(boolean[] first){
-        StringBuilder stringBuilder = null;
+    public String changeToBinaryString(boolean[] first){
+        StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i <first.length ; i++) {
             if(first[i])
                 stringBuilder.append("1");
@@ -413,27 +426,30 @@ public class GA_Algorithm {
     }
 
     //利用遗传算法，找出最佳的bucket code
-    protected Bucket FindBestCodeWithGA(){
+    public Bucket FindBestCodeWithGA(){
         //以最多每台物理机八台虚拟机的标准，得到最少需要多少台物理机
-        int minPM = M%8+1;
-        //存储按种族划分的所有的基因
-        Map<String,List<Bucket>> species = new HashMap<>();
-        //存储每个种族的最优通信开销
-        Map<String,Double> minCommucationCosts = new HashMap<>();
-        //存储每个种族最优通信开销的bucket
-        Map<String,Bucket> minCommuvationBuckets = new HashMap<>();
-        //存储每个种族的最优迁移开销
-        Map<String,Double> minMigrationCosts = new HashMap<>();
-        //存储每个种族的最优迁移开销的bucket
-        Map<String,Bucket> minMigrationBucket = new HashMap<>();
-        //存储这个种族中通信开销最优基因未更新次数
-        Map<String,Integer> updateTimesComm = new HashMap<>();
-        //存储这个种族中迁移开销最优基因未更新次数
-        Map<String,Integer> updateTimesMir = new HashMap<>();
+        int minPM = M/8+1;
+
+        Bucket best = null;
         //计算在使用不同物理机下算出的最优基因
-        for (int i = minPM; i <=N ; i++) {
-            //初始时产生10个初始基因
-            for (int j = 0; j <10 ; j++) {
+        for (int i = N; i <=N ; i++) {
+            //存储按种族划分的所有的基因
+            Map<String,List<Bucket>> species = new HashMap<>();
+            //存储每个种族的最优通信开销
+            Map<String,Double> minCommucationCosts = new HashMap<>();
+            //存储每个种族最优通信开销的bucket
+            Map<String,Bucket> minCommuvationBuckets = new HashMap<>();
+            //存储每个种族的最优迁移开销
+            Map<String,Double> minMigrationCosts = new HashMap<>();
+            //存储每个种族的最优迁移开销的bucket
+            Map<String,Bucket> minMigrationBucket = new HashMap<>();
+            //存储这个种族中通信开销最优基因未更新次数
+            Map<String,Integer> updateTimesComm = new HashMap<>();
+            //存储这个种族中迁移开销最优基因未更新次数
+            Map<String,Integer> updateTimesMir = new HashMap<>();
+            //初始时产生M*10个初始基因
+            int speciesNotUpdateNum = 0;
+            for (int j = 0; j <M*10 ; j++) {
                 Bucket bucket = MakeBucketCode(M,i);
                 //如果这个bucket符合要求
                 if(WeatherEffectBucketCode(bucket)){
@@ -453,15 +469,15 @@ public class GA_Algorithm {
             while(true){
                 //首先每一代计算每个基因的通信开销和迁移开销
                 for(Map.Entry<String,List<Bucket>> entry:species.entrySet()){
-                    double mintempCom = INFINITE;
-                    double mintempMir = INFINITE;
+                    double mintempCom = Double.MAX_VALUE;
+                    double mintempMir = Double.MAX_VALUE;
                     Bucket tempBucketComm = null;
                     Bucket tempBucketMir = null;
                     for(Bucket bucket:entry.getValue()){
                         int bestCommunicationIndex = 0;
                         int bestMigrattionIndex = 0;
-                        if (CalCommunicationCost(bucket)<mintempCom){
-                            mintempCom = CalCommunicationCost(bucket);
+                        if (CalCommunicationCost(physicalGraph)<mintempCom){
+                            mintempCom = CalCommunicationCost(physicalGraph);
                             tempBucketComm = bucket;
                         }
                         //利用KM算法求出最优匹配，从而才能计算迁移开销
@@ -547,55 +563,61 @@ public class GA_Algorithm {
 
                 }
 
-                //判断是否有种族5代都没有更新
-                boolean commBool= false;
+                //判断是否有种族5代都没有更新,如果有，代表已经最优
+//                boolean notFound= false;
                 String Gene = null;
-                for(Map.Entry<String,Integer> entry:updateTimesComm.entrySet()){
-                    if(entry.getValue()>=5){
-                        commBool = true;
-                        Gene = entry.getKey();
-                        break;
-                    }
-                }
-                //如果存在这样的种族，则代表这个种族已经进化到最优，去除这个种族（并且产生一个新种族）
-                if(commBool){
-                    species.remove(Gene);
-                    //产生一个新的基因
-                    while (true){
-                        Bucket newGene = MakeBucketCode(M,i);
-                        if(species.get(changeToBinaryString(newGene.first))==null){
-                            species.put(changeToBinaryString(newGene.first),new ArrayList<>());
-                            break;
+//                while(!notFound){
+//                    notFound = true;
+                    for(Map.Entry<String,Integer> entry:updateTimesComm.entrySet()){
+                        if(entry.getValue()>=5){
+//                            notFound = false;
+                            Gene = entry.getKey();
+                            speciesNotUpdateNum++;
                         }
-
                     }
+                //如果全部更新完毕，即代表遗传算法结束
+                if(species.size()==speciesNotUpdateNum){
+                    break;
                 }
-
+                }
+            double minSum = Double.MAX_VALUE;
+            for(Map.Entry<String,List<Bucket>> specie :species.entrySet()){
+                if(minCommucationCosts.get(specie.getKey())+minMigrationCosts.get(specie.getKey())+i<minSum){
+                    minSum = minCommucationCosts.get(specie.getKey())+minMigrationCosts.get(specie.getKey())+i;
+                    best = minCommuvationBuckets.get(specie.getKey());
+                    System.out.println("迁移开销："+minMigrationCosts.get(specie.getKey()));
+                    System.out.println("通信开销："+minCommucationCosts.get(specie.getKey()));
+                    System.out.println(minSum);
+                }
             }
         }
-        return null;
+
+        return best;
     }
 
 
     public static void main(String[] args) {
-        Util util = new Util();
-        PhysicalGraph physicalGraph = new PhysicalGraph();
-        util.ConstructPhysicalGraph(physicalGraph);
-        VirtualGraph[] virtualGraphs = new VirtualGraph[4];
-        for (int i = 0; i <4 ; i++) {
-            virtualGraphs[i] = new VirtualGraph();
-        }
-        util.ConstructVirtualGraph(virtualGraphs);
-        for (int i = 0; i <4 ; i++) {
-            System.out.println("第"+i+"个虚拟网络");
-            util.Mapping(physicalGraph,virtualGraphs[i]);
-        }
-        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph,virtualGraphs,8,4);
-        ga_algorithm.FillVM_Index();
-        Bucket bucket = ga_algorithm.MakeBucketCode(8,4);
-        bucket.sout();
-        int[] matchs = ga_algorithm.KM(bucket,4,8);
-        System.out.println(ga_algorithm.CalMigrationCost(bucket,matchs,VM_index));
+//        PhysicalGraph physicalGraph = new PhysicalGraph();
+//        VirtualGraph virtualGraphs[] = new VirtualGraph[50];
+//        Util util = new Util();
+//        for (int i = 0; i < 35; i++) {
+//            virtualGraphs[i] = new VirtualGraph(i);
+//        }
+//        //构建物理网络拓扑
+//        util.ConstructPhysicalGraph(physicalGraph);
+//        //构建虚拟网络拓扑
+//        util.ConstructVirtualGraph(virtualGraphs);
+//        //构建虚拟网络到物理网络的映射
+//        for (int i = 0; i < 35;i++) {
+//            util.Mapping(physicalGraph, virtualGraphs[i]);
+//        }
+//        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph,virtualGraphs,70,20);
+//        ga_algorithm.FillVM_Index();
+//        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
+//        Bucket bucket = ga_algorithm.MakeBucketCode(8,4);
+//        bucket.sout();
+//        int[] matchs = ga_algorithm.KM(bucket,4,8);
+//        System.out.println(ga_algorithm.CalMigrationCost(bucket,matchs,VM_index));
 
    }
 }

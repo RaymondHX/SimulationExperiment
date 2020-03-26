@@ -19,7 +19,7 @@ public class VirtualGraph {
     public Load NodeCapacity[];
     public int EdgeCapacity[][];
 
-    VirtualGraph(int id){
+    public VirtualGraph(int id){
         this.id = id;
     }
 }

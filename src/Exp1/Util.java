@@ -330,29 +330,37 @@ public class Util {
 
     /**
      * 构建物理网络与虚拟网络的映射
-     * @param physicalGraph
-     * @param virtualGraph
+     * @param physicalGraph1
+     * @param virtualGraph1
      */
-    public void Mapping(PhysicalGraph physicalGraph,VirtualGraph virtualGraph){
-        virtualGraph.VN2PN = new int[virtualGraph.Node];
-        Arrays.fill(virtualGraph.VN2PN,-1);
-        virtualGraph.VE2PE = new List[virtualGraph.Node][virtualGraph.Node];
-        for (int i = 0; i <virtualGraph.Node ; i++) {
-            for (int j = 0; j <virtualGraph.Node ; j++) {
-                virtualGraph.VE2PE[i][j] = new ArrayList();
+    public void Mapping(PhysicalGraph physicalGraph1,VirtualGraph virtualGraph1,PhysicalGraph physicalGraph2,VirtualGraph virtualGraph2){
+        virtualGraph1.VN2PN = new int[virtualGraph1.Node];
+        virtualGraph2.VN2PN = new int[virtualGraph2.Node];
+        Arrays.fill(virtualGraph1.VN2PN,-1);
+        Arrays.fill(virtualGraph2.VN2PN,-1);
+        virtualGraph1.VE2PE = new List[virtualGraph1.Node][virtualGraph1.Node];
+        virtualGraph2.VE2PE = new List[virtualGraph2.Node][virtualGraph2.Node];
+        for (int i = 0; i <virtualGraph1.Node ; i++) {
+            for (int j = 0; j <virtualGraph1.Node ; j++) {
+                virtualGraph1.VE2PE[i][j] = new ArrayList();
+                virtualGraph2.VE2PE[i][j] = new ArrayList();
             }
         }
         //这里选择把一个虚拟机随机映射到某一个物理机上
-        for (int i = 0; i <virtualGraph.Node ; i++) {
+        for (int i = 0; i <virtualGraph1.Node ; i++) {
             Random rd = new Random();
-            int random = rd.nextInt(physicalGraph.Node);
+            int random = rd.nextInt(physicalGraph1.Node);
             //判断加入这台虚拟机后物理机资源利用率是否大于1
-            if(physicalGraph.nodeLoad[random].cpu+virtualGraph.NodeCapacity[i].cpu<physicalGraph.NodeCapacity[random].cpu
-            &&physicalGraph.nodeLoad[random].mem+virtualGraph.NodeCapacity[i].mem<physicalGraph.NodeCapacity[random].mem){
-                virtualGraph.VN2PN[i] = random;
-                physicalGraph.VMInPM[random].add(new VNode(i,virtualGraph.NodeCapacity[i],virtualGraph.id));
-                physicalGraph.nodeLoad[random].cpu += virtualGraph.NodeCapacity[i].cpu;
-                physicalGraph.nodeLoad[random].mem += virtualGraph.NodeCapacity[i].mem;
+            if(physicalGraph1.nodeLoad[random].cpu+virtualGraph1.NodeCapacity[i].cpu<physicalGraph1.NodeCapacity[random].cpu
+            &&physicalGraph1.nodeLoad[random].mem+virtualGraph1.NodeCapacity[i].mem<physicalGraph1.NodeCapacity[random].mem){
+                virtualGraph1.VN2PN[i] = random;
+                physicalGraph1.VMInPM[random].add(new VNode(i,virtualGraph1.NodeCapacity[i],virtualGraph1.id));
+                physicalGraph1.nodeLoad[random].cpu += virtualGraph1.NodeCapacity[i].cpu;
+                physicalGraph1.nodeLoad[random].mem += virtualGraph1.NodeCapacity[i].mem;
+                virtualGraph2.VN2PN[i] = random;
+                physicalGraph2.VMInPM[random].add(new VNode(i,virtualGraph2.NodeCapacity[i],virtualGraph2.id));
+                physicalGraph2.nodeLoad[random].cpu += virtualGraph2.NodeCapacity[i].cpu;
+                physicalGraph2.nodeLoad[random].mem += virtualGraph2.NodeCapacity[i].mem;
             }
             else {
                 i--;
