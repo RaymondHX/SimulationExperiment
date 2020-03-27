@@ -12,6 +12,7 @@ public class GA_Algorithm {
     public static PhysicalGraph physicalGraph;
     public static VirtualGraph virtualGraphs[];
     private static final int INFINITE = 0x6fffffff;
+    public static int migrationTime = 0;
     //总的虚拟机数量
     public static int M;
     //物理机的总数量
@@ -47,7 +48,7 @@ public class GA_Algorithm {
         this.used_x = new boolean[N];
         this.used_y = new boolean[N];
         this.match = new int[N];
-        this.bucketToPM = new int[N][M];
+        this.bucketToPM = new int[N][N];
         this.slack = new int[N];
         this.map = new int[N][N];
     }
@@ -56,7 +57,7 @@ public class GA_Algorithm {
     public void FillVM_Index(){
         VM_index = new VNode[M];
         int k = 0;
-        for (int i = 0; i <35 ; i++) {
+        for (int i = 0; i <50 ; i++) {
             for (int j = 0; j <virtualGraphs[i].Node ; j++) {
                 VM_index[k] = new VNode(j,virtualGraphs[i].NodeCapacity[j],virtualGraphs[i].id);
                 k++;
@@ -72,13 +73,8 @@ public class GA_Algorithm {
 //        int num = 1;
 //        bucket.first[0] = true;
         int num = 0;
-        //首先把云主机加入
-        for (int i = 0; i <M ; i++) {
-            if(i%10==0){
-                bucket.first[i]=true;
-                num++;
-            }
-        }
+        bucket.first[0] = true;
+        num++;
         //第一部分编码
         for (int i = 1; i <M ; i++) {
             int prob = random.nextInt(10);
@@ -112,6 +108,15 @@ public class GA_Algorithm {
 
     //利用KM算法，计算得到最佳的匹配方式
     public int[] KM(Bucket bucket,int N, int M){
+        Arrays.fill(slack,0);
+        Arrays.fill(index_x,0);
+        Arrays.fill(index_y,0);
+        Arrays.fill(used_x,false);
+        Arrays.fill(used_y,false);
+        for (int i = 0; i <N ; i++) {
+            Arrays.fill(bucketToPM[i],0);
+        }
+        Arrays.fill(match,0);
         int N_1 = 0;
         //完成二分图的构建
         for (int i = 0; i <M ; i++) {
@@ -129,6 +134,7 @@ public class GA_Algorithm {
                         }
                     }
                 }
+                cpu+=vNode.load.cpu;
                 for (int j = 0; j <M ; j++) {
 
                     if(bucket.second[j]==i){
@@ -147,19 +153,15 @@ public class GA_Algorithm {
                         cpu+= vNode.load.cpu;
                     }
                 }
+//                for (int j = 0; j <N ; j++) {
+//                    //如果这个bucket的虚拟机总负载大于这台物理机的最大负载，这条边不存在
+//                    if(cpu>physicalGraph.NodeCapacity[j].cpu){
+//                        bucketToPM[N_1][j] = -1;
+//                    }
+//                }
                 N_1++;
             }
-            for (int j = 0; j <N ; j++) {
-                //如果这个bucket的虚拟机总负载大于这台物理机的最大负载，这条边不存在
-                if(cpu>physicalGraph.NodeCapacity[j].cpu){
-                    bucketToPM[N_1][j] = -1;
-                }
-            }
-        }
-        for (int i = 0; i <N ; i++) {
-            for (int j = 0; j <N ; j++) {
-//                System.out.println("bucket"+i+"与物理机"+j+"的边"+bucketToPM[i][j]);
-            }
+
         }
         //完成顶点标杆的实现
         for (int i = 0; i <N ; i++) {
@@ -174,11 +176,6 @@ public class GA_Algorithm {
         for (int i = 0; i <N ; i++) {
             index_y[i] =0;
         }
-        for (int i = 0; i <N ; i++) {
-//            System.out.println("第"+i+"个X顶点顶标"+index_x[i]);
-//            System.out.println("第"+i+"个y顶点顶标"+index_y[i]);
-
-        }
         //bucket点的匹配情况
         for (int i = 0; i <N ; i++) {
             match[i] = -1;
@@ -189,6 +186,7 @@ public class GA_Algorithm {
                 slack[j] = INFINITE;
             }
             while (true){ //寻找与X顶点相匹配的Y顶点，如果找不到就降低X的顶标继续
+               // System.out.println("hhh");
                 for (int j = 0; j <N ; j++) {
                     used_x[j] = false;
                     used_y[j] = false;
@@ -428,7 +426,7 @@ public class GA_Algorithm {
     //利用遗传算法，找出最佳的bucket code
     public Bucket FindBestCodeWithGA(){
         //以最多每台物理机八台虚拟机的标准，得到最少需要多少台物理机
-        int minPM = M/8+1;
+        int minPM = M/6+1;
 
         Bucket best = null;
         //计算在使用不同物理机下算出的最优基因
@@ -449,7 +447,7 @@ public class GA_Algorithm {
             Map<String,Integer> updateTimesMir = new HashMap<>();
             //初始时产生M*10个初始基因
             int speciesNotUpdateNum = 0;
-            for (int j = 0; j <M*10 ; j++) {
+            for (int j = 0; j <M*500 ; j++) {
                 Bucket bucket = MakeBucketCode(M,i);
                 //如果这个bucket符合要求
                 if(WeatherEffectBucketCode(bucket)){
@@ -465,6 +463,7 @@ public class GA_Algorithm {
                     j--;
                 }
             }
+//            System.out.println("hh");
             //然后不断进行迭代，知道所有种族中最优基因没有变化
             while(true){
                 //首先每一代计算每个基因的通信开销和迁移开销
@@ -481,7 +480,8 @@ public class GA_Algorithm {
                             tempBucketComm = bucket;
                         }
                         //利用KM算法求出最优匹配，从而才能计算迁移开销
-                        int[] matches = KM(bucket,N,M);
+                        int[] matches = KM(bucket,i,M);
+ //                       System.out.println("hh");
                         if(CalMigrationCost(bucket,matches,VM_index)<mintempMir){
                             mintempMir = CalMigrationCost(bucket,matches,VM_index);
                             tempBucketMir = bucket;
@@ -526,20 +526,20 @@ public class GA_Algorithm {
                 for (Map.Entry<String,List<Bucket>> entry:species.entrySet()){
                     Random random = new Random();
                     int possiblity = random.nextInt(100);
-                    //一半的可能性从通信开销最小的学习
-                    if (possiblity>50){
-                        //得到最优的bucket
-                        Bucket bestBucket = minCommuvationBuckets.get(entry.getKey());
-                        if(entry.getValue().size()>1){
-                            for (int j = 0; j <entry.getValue().size() ; j++) {
-                                Bucket old = entry.getValue().get(j);
-                                Bucket newBucket = LearnFromSameSpecie(bestBucket,old);
-                                entry.getValue().set(j,newBucket);
-                            }
-                        }
-                    }
-                    //其余时候从最小迁移开销中学习
-                    else {
+//                    //一半的可能性从通信开销最小的学习
+//                    if (possiblity>50){
+//                        //得到最优的bucket
+//                        Bucket bestBucket = minCommuvationBuckets.get(entry.getKey());
+//                        if(entry.getValue().size()>1){
+//                            for (int j = 0; j <entry.getValue().size() ; j++) {
+//                                Bucket old = entry.getValue().get(j);
+//                                Bucket newBucket = LearnFromSameSpecie(bestBucket,old);
+//                                entry.getValue().set(j,newBucket);
+//                            }
+//                        }
+//                    }
+//                    //其余时候从最小迁移开销中学习
+//                    else {
                         Bucket bestBucket = minMigrationBucket.get(entry.getKey());
                         if(entry.getValue().size()>1){
                             for (int j = 0; j <entry.getValue().size() ; j++) {
@@ -548,7 +548,7 @@ public class GA_Algorithm {
                                 entry.getValue().set(j,newBucket);
                             }
                         }
-                    }
+//                    }
                 }
 
                 //适当时候对种族内某些基因进行变异

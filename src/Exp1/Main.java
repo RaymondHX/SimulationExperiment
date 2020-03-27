@@ -10,7 +10,7 @@ public class Main {
     public static PhysicalGraph physicalGraph2 = new PhysicalGraph();
     public static VirtualGraph virtualGraphs2[] = new VirtualGraph[50];
     public static Util util = new Util();
-    public static int VGnum = 35;
+    public static int VGnum = 50;
     public static double totalCostBefore = 0;
     public static double totlalCostAfter = 0;
     public static void main(String[] args) {
@@ -34,12 +34,7 @@ public class Main {
         util.ConstructPhysicalCompleteGraph(physicalGraph1);
         //计算此时发生过载的节点
         util.CalTemperature(physicalGraph1);
-        for (int i = 0; i < physicalGraph1.Node; i++) {
-            if (physicalGraph1.temperature[i].temperature != 0.0) {
-                System.out.println("物理机" + physicalGraph1.temperature[i].PM + "过载");
-            }
 
-        }
         System.out.println("原能耗开销："+util.calEnergyConsumption(physicalGraph1));
         System.out.println("原SLAV:"+util.calCommunCost(physicalGraph1));
 
@@ -49,12 +44,14 @@ public class Main {
             transfer.Migration(physicalGraph1);
             util.CalTemperature(physicalGraph1);
         }
+        transfer.migrateColdSpot(physicalGraph1);
+        System.out.println("新能耗开销："+util.calEnergyConsumption(physicalGraph1));
         System.out.println("迁移开销："+transfer.getMigrationCost()+"\n");
+        System.out.println("迁移次数："+transfer.migrationTime+"\n");
 
 
 
-
-        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,70,20);
+        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,20);
         ga_algorithm.FillVM_Index();
         Bucket bucket = ga_algorithm.FindBestCodeWithGA();
     }

@@ -4,7 +4,9 @@ import Exp1.PhysicalGraph;
 import Exp1.VNode;
 import Exp1.VirtualGraph;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 
 public class Transfer {
@@ -22,7 +24,7 @@ public class Transfer {
     //把一个虚拟机迁移到另一台物理机上
     public void TransferVirtualNode(int VGnum,int virtualNode,int newPhysicalNode){
         migrationTime++;
-        System.out.println("迁移第"+VGnum+"个虚拟网络上"+"第"+virtualNode+"个"+"虚拟机"+"到物理机"+newPhysicalNode);
+       // System.out.println("迁移第"+VGnum+"个虚拟网络上"+"第"+virtualNode+"个"+"虚拟机"+"到物理机"+newPhysicalNode);
         int oldPhysicalNode = virtualGraphs[VGnum].VN2PN[virtualNode];
         VNode vNode = null;
         //从原物理机上删除这个虚拟机
@@ -69,13 +71,13 @@ public class Transfer {
         Arrays.sort(physicalGraph.temperature);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(physicalGraph.temperature[i].temperature!=0.0){
-                System.out.println("第"+physicalGraph.temperature[i].PM+"物理机发生过载");
+               //System.out.println("第"+physicalGraph.temperature[i].PM+"物理机发生过载");
                 Queue<VNode> queue = util.VMChoose(physicalGraph, physicalGraph.temperature[i].PM);
                 while(!queue.isEmpty()){
                     VNode vNode = queue.poll();
                     //找到这个虚拟机所处的物理机
                     int PMid = virtualGraphs[vNode.VGnum].VN2PN[vNode.id];
-                    System.out.println("迁移物理机"+PMid+"上的虚拟机");
+                   // System.out.println("迁移物理机"+PMid+"上的虚拟机");
                     int newPM = 0;
                     double min_dis = Double.MAX_VALUE;
                     boolean migrated = false;
@@ -128,6 +130,31 @@ public class Transfer {
                         }
                     }
 
+                }
+            }
+        }
+    }
+
+    /**
+     * 迁移冷节点
+     * @param physicalGraph
+     */
+    public void migrateColdSpot(PhysicalGraph physicalGraph){
+        for (int i = 0; i <physicalGraph.Node ; i++) {
+            //这是一个冷节点
+            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2){
+                for (int j = 0; j <physicalGraph.Node ; j++) {
+                    if(physicalGraph.Color[i][j].equals("yellow")&&
+                            (physicalGraph.nodeLoad[j].cpu+physicalGraph.nodeLoad[i].cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
+                        List<VNode> VMlist = physicalGraph.VMInPM[i];
+                        List<VNode> temp = new ArrayList<>();
+                        for (int k = 0; k <VMlist.size() ; k++) {
+                            temp.add(new VNode(VMlist.get(k).id,VMlist.get(k).load,VMlist.get(k).VGnum));
+                        }
+                        for (int k = 0; k <temp.size() ; k++) {
+                            TransferVirtualNode(temp.get(k).VGnum,temp.get(k).id,j);
+                        }
+                    }
                 }
             }
         }

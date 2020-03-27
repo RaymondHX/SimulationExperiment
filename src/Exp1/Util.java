@@ -11,7 +11,7 @@ public class Util {
 
     public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\20.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
-    public int VGnum = 35;
+    public int VGnum = 50;
     public double cpu_mean_center = 100;
     public double cpu_square_center = 10;
     public double cpu_mean_side = 10;
@@ -29,7 +29,7 @@ public class Util {
     //CPU资源过载的阈值
     public double hot_threshold = 0.8;
     //coldspot的阈值
-    public double cold_threshold = 0.1;
+    public double cold_threshold = 0.2;
 
     /**
      *     读入物理网络的相关信息
@@ -376,7 +376,7 @@ public class Util {
      * @param VE2PE
      */
     public void findPath(PhysicalGraph physicalGraph, int from, int to, List VE2PE){
-        System.out.println("想要找"+from+"-"+to+"的路径");
+        //System.out.println("想要找"+from+"-"+to+"的路径");
         boolean visited[] = new boolean[physicalGraph.Node];
         visited[from] = true;
             if(physicalGraph.EdgeCapacity[from][to]!=-1){
@@ -399,8 +399,8 @@ public class Util {
     }
 
     public boolean DFS(PhysicalGraph physicalGraph, int from,int to,boolean visited[], List VE2PE){
-        System.out.println("from"+from);
-        System.out.println("to"+to);
+        //System.out.println("from"+from);
+        //System.out.println("to"+to);
         visited[from] = true;
             if(physicalGraph.EdgeCapacity[from][to]>0)
                 return true;
@@ -534,7 +534,7 @@ public class Util {
         for (int i = 1; i <= physicalGraph.VMInPM[PM].size(); i++) {
             if(!item[i]){
                 queue.add(physicalGraph.VMInPM[PM].get(i-1));
-                System.out.println("第"+(i-1)+"台虚拟机被选中迁移");
+                //System.out.println("第"+(i-1)+"台虚拟机被选中迁移");
             }
 
 
