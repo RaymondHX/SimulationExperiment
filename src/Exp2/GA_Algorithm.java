@@ -582,14 +582,16 @@ public class GA_Algorithm {
                 }
             double minSum = Double.MAX_VALUE;
             for(Map.Entry<String,List<Bucket>> specie :species.entrySet()){
-                if(minCommucationCosts.get(specie.getKey())+minMigrationCosts.get(specie.getKey())+i<minSum){
-                    minSum = minCommucationCosts.get(specie.getKey())+minMigrationCosts.get(specie.getKey())+i;
+                if(minMigrationCosts.get(specie.getKey())+i<minSum){
+                    minSum =minMigrationCosts.get(specie.getKey())+i;
                     best = minCommuvationBuckets.get(specie.getKey());
-                    System.out.println("迁移开销："+minMigrationCosts.get(specie.getKey()));
-                    System.out.println("通信开销："+minCommucationCosts.get(specie.getKey()));
-                    System.out.println(minSum);
+//                    System.out.println("迁移开销："+minMigrationCosts.get(specie.getKey()));
+//                    System.out.println("通信开销："+minCommucationCosts.get(specie.getKey()));
+//                    System.out.println(minSum);
                 }
             }
+            System.out.println("迁移开销："+minSum);
+//            System.out.println("通信开销："+minCommucationCosts.get(specie.getKey()));
         }
 
         return best;

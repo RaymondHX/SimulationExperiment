@@ -12,20 +12,20 @@ public class Util {
     public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\20.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
     public int VGnum = 50;
-    public double cpu_mean_center = 100;
-    public double cpu_square_center = 10;
-    public double cpu_mean_side = 10;
-    public double cpu_square_side = 2;
-    public double cpu_mean_virtual = 1;
-    public double cpu_square_virtual = 0.1;
-    public double mem_mean_center = 100;
-    public double mem_square_cenetr = 10;
-    public double mem_mean_side = 10;
-    public double mem_square_side = 2;
-    public double mem_mean_virtual = 1;
-    public double mem_square_virtual = 0.1;
-    public double edge_mean = 1;
-    public double edge_square = 0.1;
+    public double cpu_mean_center = 1000;
+    public double cpu_square_center = 100;
+    public double cpu_mean_side = 100;
+    public double cpu_square_side = 20;
+    public double cpu_mean_virtual = 10;
+    public double cpu_square_virtual = 1;
+    public double mem_mean_center = 1000;
+    public double mem_square_cenetr = 100;
+    public double mem_mean_side = 100;
+    public double mem_square_side = 20;
+    public double mem_mean_virtual = 10;
+    public double mem_square_virtual = 1;
+    public double edge_mean = 10;
+    public double edge_square = 1;
     //CPU资源过载的阈值
     public double hot_threshold = 0.8;
     //coldspot的阈值
@@ -104,6 +104,36 @@ public class Util {
 
                 }
             }
+        }
+    }
+
+
+    public void updatePhysicalGraphNode(PhysicalGraph physicalGraph1,PhysicalGraph physicalGraph2,PhysicalGraph physicalGraph3){
+        Random random = new Random();
+        for (int i = 0; i < physicalGraph1.Node; i ++){
+            //这些节点为中心节点
+            if(i==10){
+                double temp1 = Math.sqrt(cpu_square_center)*random.nextGaussian()+cpu_mean_center;
+                double temp2 = Math.sqrt(mem_square_cenetr)*random.nextGaussian()+mem_mean_center;
+                physicalGraph1.NodeCapacity[i].cpu = temp1;
+                physicalGraph1.NodeCapacity[i].mem = temp2;
+                physicalGraph2.NodeCapacity[i].cpu = temp1;
+                physicalGraph2.NodeCapacity[i].mem = temp2;
+                physicalGraph3.NodeCapacity[i].cpu = temp1;
+                physicalGraph3.NodeCapacity[i].mem = temp2;
+            }
+            //这些节点为边缘节点
+            else {
+                double temp1 = Math.sqrt(cpu_square_side)*random.nextGaussian()+cpu_mean_side;
+                double temp2 = Math.sqrt(mem_square_side)*random.nextGaussian()+mem_mean_side;
+                physicalGraph1.NodeCapacity[i].cpu = temp1;
+                physicalGraph1.NodeCapacity[i].mem = temp2;
+                physicalGraph2.NodeCapacity[i].cpu = temp1;
+                physicalGraph2.NodeCapacity[i].mem = temp2;
+                physicalGraph3.NodeCapacity[i].cpu = temp1;
+                physicalGraph3.NodeCapacity[i].mem = temp2;
+            }
+
         }
     }
 
@@ -328,22 +358,45 @@ public class Util {
         }
     }
 
+    public void updateVirtualNode(VirtualGraph[] virtualGraph1,VirtualGraph[] virtualGraph2,VirtualGraph[] virtualGraph3){
+        Random random = new Random();
+        for (int v = 0; v <VGnum ; v++) {
+            for (int i = 0; i < virtualGraph1[v].Node; i ++) {
+                double temp1 = Math.sqrt(cpu_square_virtual) * random.nextGaussian() + cpu_mean_virtual;
+                double temp2 = Math.sqrt(mem_square_virtual) * random.nextGaussian() + mem_mean_virtual;
+                virtualGraph1[v].NodeCapacity[i].cpu = temp1;
+                virtualGraph1[v].NodeCapacity[i].mem = temp2;
+                virtualGraph2[v].NodeCapacity[i].cpu = temp1;
+                virtualGraph2[v].NodeCapacity[i].mem = temp2;
+                virtualGraph3[v].NodeCapacity[i].cpu = temp1;
+                virtualGraph3[v].NodeCapacity[i].mem = temp2;
+            }
+        }
+
+    }
+
     /**
      * 构建物理网络与虚拟网络的映射
      * @param physicalGraph1
      * @param virtualGraph1
      */
-    public void Mapping(PhysicalGraph physicalGraph1,VirtualGraph virtualGraph1,PhysicalGraph physicalGraph2,VirtualGraph virtualGraph2){
+    public void Mapping(PhysicalGraph physicalGraph1,VirtualGraph virtualGraph1,
+                        PhysicalGraph physicalGraph2,VirtualGraph virtualGraph2,
+                        PhysicalGraph physicalGraph3,VirtualGraph virtualGraph3){
         virtualGraph1.VN2PN = new int[virtualGraph1.Node];
         virtualGraph2.VN2PN = new int[virtualGraph2.Node];
+        virtualGraph3.VN2PN = new int[virtualGraph3.Node];
         Arrays.fill(virtualGraph1.VN2PN,-1);
         Arrays.fill(virtualGraph2.VN2PN,-1);
+        Arrays.fill(virtualGraph3.VN2PN,-1);
         virtualGraph1.VE2PE = new List[virtualGraph1.Node][virtualGraph1.Node];
         virtualGraph2.VE2PE = new List[virtualGraph2.Node][virtualGraph2.Node];
+        virtualGraph3.VE2PE = new List[virtualGraph3.Node][virtualGraph3.Node];
         for (int i = 0; i <virtualGraph1.Node ; i++) {
             for (int j = 0; j <virtualGraph1.Node ; j++) {
                 virtualGraph1.VE2PE[i][j] = new ArrayList();
                 virtualGraph2.VE2PE[i][j] = new ArrayList();
+                virtualGraph3.VE2PE[i][j] = new ArrayList();
             }
         }
         //这里选择把一个虚拟机随机映射到某一个物理机上
@@ -361,6 +414,10 @@ public class Util {
                 physicalGraph2.VMInPM[random].add(new VNode(i,virtualGraph2.NodeCapacity[i],virtualGraph2.id));
                 physicalGraph2.nodeLoad[random].cpu += virtualGraph2.NodeCapacity[i].cpu;
                 physicalGraph2.nodeLoad[random].mem += virtualGraph2.NodeCapacity[i].mem;
+                virtualGraph3.VN2PN[i] = random;
+                physicalGraph3.VMInPM[random].add(new VNode(i,virtualGraph3.NodeCapacity[i],virtualGraph3.id));
+                physicalGraph3.nodeLoad[random].cpu += virtualGraph3.NodeCapacity[i].cpu;
+                physicalGraph3.nodeLoad[random].mem += virtualGraph3.NodeCapacity[i].mem;
             }
             else {
                 i--;
@@ -454,10 +511,11 @@ public class Util {
         double α = 1,β = 1;
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>hot_threshold){
-                physicalGraph.temperature[i] =new TempMapping(i, α*(physicalGraph.NodeCapacity[i].cpu/physicalGraph.NodeCapacity[i].cpu-hot_threshold)+β*physicalGraph.NodeCapacity[i].mem);
+                physicalGraph.temperature[i] =new TempMapping(i, α*(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu-hot_threshold)+β*physicalGraph.nodeLoad[i].mem/100);
             }
-            else
+            else{
                 physicalGraph.temperature[i] = new TempMapping(i,0.0);
+            }
         }
     }
 
@@ -510,7 +568,7 @@ public class Util {
     //选出需要迁移的虚拟机，使迁出虚拟机的cpu负载大于过载量，并所选的虚拟机的Mem和最小，使用01背包计算
     public Queue<VNode> VMChoose(PhysicalGraph physicalGraph, int PM){
         Queue<VNode> queue = new LinkedList<>();
-        int a = (int)physicalGraph.NodeCapacity[PM].cpu;
+        int a = (int)(physicalGraph.NodeCapacity[PM].cpu*0.8);
         int VM[][] = new int[physicalGraph.VMInPM[PM].size()+1][a+1];
         for (int i = 0; i <=physicalGraph.VMInPM[PM].size(); i++) {
             for (int j = 0; j <=a; j++) {
@@ -520,8 +578,6 @@ public class Util {
         for (int i = 1; i <=physicalGraph.VMInPM[PM].size() ; i++) {
             for (int j = 1; j <=a ; j++) {
                 VM[i][j] = VM[i-1][j];
-//                System.out.println("大小："+physicalGraph.VMInPM[PM].size());
-//                System.out.println("检查："+i+" "+physicalGraph.VMInPM[PM].get(i-1));
                 if((int)physicalGraph.VMInPM[PM].get(i-1).load.cpu<j){
                     VM[i][j] = max(VM[i-1][j],VM[i-1][j-(int)physicalGraph.VMInPM[PM].get(i-1).load.cpu]+
                             (int)physicalGraph.VMInPM[PM].get(i-1).load.mem);
@@ -534,7 +590,6 @@ public class Util {
         for (int i = 1; i <= physicalGraph.VMInPM[PM].size(); i++) {
             if(!item[i]){
                 queue.add(physicalGraph.VMInPM[PM].get(i-1));
-                //System.out.println("第"+(i-1)+"台虚拟机被选中迁移");
             }
 
 

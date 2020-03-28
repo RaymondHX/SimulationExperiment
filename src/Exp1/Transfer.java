@@ -49,19 +49,7 @@ public class Transfer {
         //更新颜色图
         util.updatePhysicalCompleteGraph(physicalGraph,oldPhysicalNode,newPhysicalNode);
 
-        //        for (int i = 0; i <virtualGraphs[PGnum].Node ; i++) {
-//            virtualGraphs[PGnum].VE2PE[virtualNode][i].clear();
-//            virtualGraphs[PGnum].VE2PE[i][virtualNode].clear();
-//        }
-//        Util util = new Util();
-//        for (int i = 0; i <virtualGraphs[PGnum].Node ; i++) {
-//            if(virtualGraphs[PGnum].EdgeCapacity[virtualNode][i]!=0&&i!=virtualNode){
-//             int to = virtualGraphs[PGnum].VN2PN[i];
-////             util.findPath(physicalGraph,newPhysicalNode,to,virtualGraphs[PGnum].VE2PE[virtualNode][i]);
-////             util.findPath(physicalGraph,to,newPhysicalNode,virtualGraphs[PGnum].VE2PE[i][virtualNode]);
-//
-//            }
-//        }
+
     }
 
 
@@ -77,14 +65,11 @@ public class Transfer {
                     VNode vNode = queue.poll();
                     //找到这个虚拟机所处的物理机
                     int PMid = virtualGraphs[vNode.VGnum].VN2PN[vNode.id];
-                   // System.out.println("迁移物理机"+PMid+"上的虚拟机");
+                    //System.out.println("迁移物理机"+PMid+"上的虚拟机");
                     int newPM = 0;
                     double min_dis = Double.MAX_VALUE;
                     boolean migrated = false;
                     double dis[] = util.FindMinPath(physicalGraph,PMid);
-//                    for (int j = 0; j <dis.length ; j++) {
-//                        System.out.println(dis[j]);
-//                    }
                     //首先找绿色的边迁移，有多条时选择最短的
                     for (int j = 0; j <physicalGraph.Node ; j++) {
                         //System.out.println(dis[j]);
@@ -142,7 +127,7 @@ public class Transfer {
     public void migrateColdSpot(PhysicalGraph physicalGraph){
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //这是一个冷节点
-            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2){
+            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%10!=0){
                 for (int j = 0; j <physicalGraph.Node ; j++) {
                     if(physicalGraph.Color[i][j].equals("yellow")&&
                             (physicalGraph.nodeLoad[j].cpu+physicalGraph.nodeLoad[i].cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
