@@ -14,6 +14,7 @@ public class Transfer {
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
     public int migrationTime = 0;
+    double dis[];
     Util util = new Util();
 
     public  Transfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
@@ -35,7 +36,7 @@ public class Transfer {
                 physicalGraph.nodeLoad[oldPhysicalNode].cpu -= vNode.load.cpu;
                 physicalGraph.nodeLoad[oldPhysicalNode].mem -= vNode.load.mem;
                 //计算一次迁移开销
-                migrationCost  += vNode.load.mem;
+                migrationCost  += vNode.load.mem*dis[newPhysicalNode]*10;
                 break;
             }
         }
@@ -69,7 +70,7 @@ public class Transfer {
                     int newPM = 0;
                     double min_dis = Double.MAX_VALUE;
                     boolean migrated = false;
-                    double dis[] = util.FindMinPath(physicalGraph,PMid);
+                    dis= util.FindMinPath(physicalGraph,PMid);
                     //首先找绿色的边迁移，有多条时选择最短的
                     for (int j = 0; j <physicalGraph.Node ; j++) {
                         //System.out.println(dis[j]);

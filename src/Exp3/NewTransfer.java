@@ -13,7 +13,7 @@ public class NewTransfer {
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
     public int migrationTime = 0;
-
+    public double[] dis;
 
     public  NewTransfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
         this.physicalGraph = physicalGraph;
@@ -31,7 +31,7 @@ public class NewTransfer {
                 physicalGraph.nodeLoad[oldPhysicalNode].cpu -= vNode.load.cpu;
                 physicalGraph.nodeLoad[oldPhysicalNode].mem -= vNode.load.mem;
                 //计算一次迁移开销
-                migrationCost  += vNode.load.mem;
+                migrationCost  += vNode.load.mem*dis[newPhysicalNode]*10;
                 break;
             }
         }
@@ -47,9 +47,12 @@ public class NewTransfer {
 
     //选出需要迁移的节点和迁移到的节点
     public void Migration(PhysicalGraph physicalGraph){
+        Util util = new Util();
             for (int i = 0; i <physicalGraph.Node ; i++) {
                 if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
+                    System.out.println("jj");
                     VNode vnode = findMaxCpuVirtualMachine(physicalGraph.VMInPM[i]);
+                    dis = util.FindMinPath(physicalGraph,i);
                     //找出图中哪些节点满足迁移条件
                     for (int j = 0; j <physicalGraph.Node ; j++) {
                         if((physicalGraph.nodeLoad[j].cpu+vnode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8&&i!=j){

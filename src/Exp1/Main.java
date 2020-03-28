@@ -54,7 +54,9 @@ public class Main {
             transfer.Migration(physicalGraph1);
             util.CalTemperature(physicalGraph1);
         }
+        System.out.println("123");
         transfer.migrateColdSpot(physicalGraph1);
+        System.out.println("hh");
         System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph1));
         System.out.println("迁移开销："+transfer.getMigrationCost());
         System.out.println("迁移次数："+transfer.migrationTime+"\n");
@@ -72,9 +74,9 @@ public class Main {
         System.out.println("迁移开销："+newTransfer.migrationCost);
         System.out.println("迁移次数："+newTransfer.migrationTime+"\n");
 
-        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,20);
-        ga_algorithm.FillVM_Index();
-        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
+//        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,20);
+//        ga_algorithm.FillVM_Index();
+//        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
     }
 
     public static boolean weatherStable(PhysicalGraph physicalGraph){
