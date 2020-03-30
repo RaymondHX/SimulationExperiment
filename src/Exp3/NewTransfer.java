@@ -12,12 +12,16 @@ public class NewTransfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
+    public double communicationCost = 0;
+    public int pointer = 0;
     public int migrationTime = 0;
     public double[] dis;
 
     public  NewTransfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
+        Util util = new Util();
         this.physicalGraph = physicalGraph;
         this.virtualGraphs = virtualGraphs;
+        communicationCost = util.calCommunCost(physicalGraph);
     }
     public void TransferVirtualNode(int VGnum,int virtualNode,int newPhysicalNode){
         migrationTime++;
@@ -25,7 +29,7 @@ public class NewTransfer {
         VNode vNode = null;
         //从原物理机上删除这个虚拟机
         for (int i = 0; i <physicalGraph.VMInPM[oldPhysicalNode].size() ; i++) {
-            if(physicalGraph.VMInPM[oldPhysicalNode].get(i).id == virtualNode){
+            if(physicalGraph.VMInPM[oldPhysicalNode].get(i).id == virtualNode&&physicalGraph.VMInPM[oldPhysicalNode].get(i).VGnum==VGnum){
                 vNode = physicalGraph.VMInPM[oldPhysicalNode].get(i);
                 physicalGraph.VMInPM[oldPhysicalNode].remove(i);
                 physicalGraph.nodeLoad[oldPhysicalNode].cpu -= vNode.load.cpu;
@@ -48,19 +52,27 @@ public class NewTransfer {
     //选出需要迁移的节点和迁移到的节点
     public void Migration(PhysicalGraph physicalGraph){
         Util util = new Util();
+        communicationCost +=util.calCommunCost(physicalGraph);
             for (int i = 0; i <physicalGraph.Node ; i++) {
                 if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
-                    System.out.println("jj");
+                    //System.out.println("jj");
                     VNode vnode = findMaxCpuVirtualMachine(physicalGraph.VMInPM[i]);
                     dis = util.FindMinPath(physicalGraph,i);
                     //找出图中哪些节点满足迁移条件
                     for (int j = 0; j <physicalGraph.Node ; j++) {
-                        if((physicalGraph.nodeLoad[j].cpu+vnode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8&&i!=j){
+                        if((physicalGraph.nodeLoad[j].cpu+vnode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8&&dis[j]!=0){
                             TransferVirtualNode(vnode.VGnum,vnode.id,j);
                             break;
                         }
                     }
+                    if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.8){
+                        break;
+                    }
+                    if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
+                        i--;
+                    }
                 }
+
             }
     }
 

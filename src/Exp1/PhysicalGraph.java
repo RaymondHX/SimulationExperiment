@@ -37,6 +37,8 @@ public class PhysicalGraph {
      */
     public List<VNode> VMInPM[];
 
+    boolean [][] path;
+
     public PhysicalGraph() {
 
     }

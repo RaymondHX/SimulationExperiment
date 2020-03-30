@@ -9,9 +9,9 @@ import java.util.*;
 
 public class Util {
 
-    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\20.brite";
+    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\500.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
-    public int VGnum = 50;
+    public int VGnum = 500;
     public double cpu_mean_center = 1000;
     public double cpu_square_center = 100;
     public double cpu_mean_side = 100;
@@ -142,14 +142,11 @@ public class Util {
      * @param physicalGraph
      */
     public void ConstructPhysicalCompleteGraph(PhysicalGraph physicalGraph){
-        boolean [][] path = wetherHavePath(physicalGraph);
+        physicalGraph.path = wetherHavePath(physicalGraph);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             for (int j = 0; j <physicalGraph.Node ; j++) {
-//                System.out.println("节点"+i+" cpu "+physicalGraph.NodeCapacity[i].cpu/physicalGraph.NodeCapacity[i].cpu);
-//                System.out.println("节点"+j+" cpu "+physicalGraph.NodeCapacity[j].cpu/physicalGraph.NodeCapacity[i].cpu);
- //               System.out.println(path[i][j]);
                 //如果物理网络中不相连，为红色
-                if(!path[i][j]){
+                if(!physicalGraph.path[i][j]){
                     physicalGraph.Color[i][j] = "red";
                 }
                 else {
@@ -187,7 +184,7 @@ public class Util {
                     }
                 }
 
-                System.out.println(physicalGraph.Color[i][j]);
+               // System.out.println(physicalGraph.Color[i][j]);
             }
         }
 
@@ -202,7 +199,7 @@ public class Util {
     public void updatePhysicalCompleteGraph(PhysicalGraph physicalGraph, int from, int to){
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //如果物理网络中不相连，为红色
-            if(physicalGraph.EdgeCapacity[from][i]==-1){
+            if(!physicalGraph.path[from][i]){
                 physicalGraph.Color[from][i] = "red";
                 physicalGraph.Color[i][from] = "red";
             }
@@ -252,7 +249,7 @@ public class Util {
         }
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //如果物理网络中不相连，为红色
-            if(physicalGraph.EdgeCapacity[to][i]==-1){
+            if(!physicalGraph.path[to][i]){
                 physicalGraph.Color[to][i] = "red";
                 physicalGraph.Color[i][to] = "red";
             }
@@ -329,7 +326,7 @@ public class Util {
                     String line[] = temp.split(" ");
                     //暂定图中capacity是我结构中的cpu
                     virtualGraph[v].NodeCapacity[i].cpu = Math.sqrt(cpu_square_virtual)*random.nextGaussian()+cpu_mean_virtual;
-                    virtualGraph[v].NodeCapacity[i].mem = Math.sqrt(mem_square_virtual)*random.nextGaussian()+mem_mean_virtual;
+                    virtualGraph[v].NodeCapacity[i].mem = virtualGraph[v].NodeCapacity[i].cpu;
                     for (int k=1; k < line.length; k=k+2)
                     {
                         virtualGraph[v].EdgeCapacity[Integer.parseInt(line[k])-1][i]=Integer.parseInt(line[k+1]);
@@ -403,9 +400,23 @@ public class Util {
         for (int i = 0; i <virtualGraph1.Node ; i++) {
             Random rd = new Random();
             int random = rd.nextInt(physicalGraph1.Node);
+            if(random%9==0&&physicalGraph1.VMInPM[random].size()==0){
+                virtualGraph1.VN2PN[i] = random;
+                physicalGraph1.VMInPM[random].add(new VNode(i,virtualGraph1.NodeCapacity[i],virtualGraph1.id));
+                physicalGraph1.nodeLoad[random].cpu += virtualGraph1.NodeCapacity[i].cpu;
+                physicalGraph1.nodeLoad[random].mem += virtualGraph1.NodeCapacity[i].mem;
+                virtualGraph2.VN2PN[i] = random;
+                physicalGraph2.VMInPM[random].add(new VNode(i,virtualGraph2.NodeCapacity[i],virtualGraph2.id));
+                physicalGraph2.nodeLoad[random].cpu += virtualGraph2.NodeCapacity[i].cpu;
+                physicalGraph2.nodeLoad[random].mem += virtualGraph2.NodeCapacity[i].mem;
+                virtualGraph3.VN2PN[i] = random;
+                physicalGraph3.VMInPM[random].add(new VNode(i,virtualGraph3.NodeCapacity[i],virtualGraph3.id));
+                physicalGraph3.nodeLoad[random].cpu += virtualGraph3.NodeCapacity[i].cpu;
+                physicalGraph3.nodeLoad[random].mem += virtualGraph3.NodeCapacity[i].mem;
+            }
             //判断加入这台虚拟机后物理机资源利用率是否大于1
-            if(physicalGraph1.nodeLoad[random].cpu+virtualGraph1.NodeCapacity[i].cpu<physicalGraph1.NodeCapacity[random].cpu
-            &&physicalGraph1.nodeLoad[random].mem+virtualGraph1.NodeCapacity[i].mem<physicalGraph1.NodeCapacity[random].mem){
+            else if(physicalGraph1.nodeLoad[random].cpu+virtualGraph1.NodeCapacity[i].cpu<physicalGraph1.NodeCapacity[random].cpu
+            &&physicalGraph1.nodeLoad[random].mem+virtualGraph1.NodeCapacity[i].mem<physicalGraph1.NodeCapacity[random].mem&&random%9!=0){
                 virtualGraph1.VN2PN[i] = random;
                 physicalGraph1.VMInPM[random].add(new VNode(i,virtualGraph1.NodeCapacity[i],virtualGraph1.id));
                 physicalGraph1.nodeLoad[random].cpu += virtualGraph1.NodeCapacity[i].cpu;
@@ -508,7 +519,7 @@ public class Util {
 
     //计算过载的目标函数
     public void CalTemperature(PhysicalGraph physicalGraph){
-        double α = 1,β = 1;
+        double α = 10,β = 10;
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>hot_threshold){
                 physicalGraph.temperature[i] =new TempMapping(i, α*(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu-hot_threshold)+β*physicalGraph.nodeLoad[i].mem/100);
@@ -568,19 +579,14 @@ public class Util {
     //选出需要迁移的虚拟机，使迁出虚拟机的cpu负载大于过载量，并所选的虚拟机的Mem和最小，使用01背包计算
     public Queue<VNode> VMChoose(PhysicalGraph physicalGraph, int PM){
         Queue<VNode> queue = new LinkedList<>();
-        int a = (int)(physicalGraph.NodeCapacity[PM].cpu*0.8);
+        int a = (int)(physicalGraph.NodeCapacity[PM].cpu*0.8)-5;
         int VM[][] = new int[physicalGraph.VMInPM[PM].size()+1][a+1];
-        for (int i = 0; i <=physicalGraph.VMInPM[PM].size(); i++) {
-            for (int j = 0; j <=a; j++) {
-                VM[i][j] = 0;
-            }
-        }
         for (int i = 1; i <=physicalGraph.VMInPM[PM].size() ; i++) {
             for (int j = 1; j <=a ; j++) {
                 VM[i][j] = VM[i-1][j];
-                if((int)physicalGraph.VMInPM[PM].get(i-1).load.cpu<j){
-                    VM[i][j] = max(VM[i-1][j],VM[i-1][j-(int)physicalGraph.VMInPM[PM].get(i-1).load.cpu]+
-                            (int)physicalGraph.VMInPM[PM].get(i-1).load.mem);
+                if((int)physicalGraph.VMInPM[PM].get(i-1).load.cpu+1<j){
+                    VM[i][j] = max(VM[i-1][j],VM[i-1][j-(int)physicalGraph.VMInPM[PM].get(i-1).load.cpu-1]+
+                            (int)physicalGraph.VMInPM[PM].get(i-1).load.mem+1);
                 }
             }
         }
@@ -602,8 +608,8 @@ public class Util {
             if (dp[i][j] == dp[i - 1][j]) {
                 item[i] = false;
                 findWhat(i - 1, j,dp,item,physicalGraph,PM);
-            } else if (j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu >= 0 && dp[i][j]
-                    == dp[i - 1][j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu] + (int)physicalGraph.VMInPM[PM].get(i-1).load.mem) {
+            } else if (j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu-1 >= 0 && dp[i][j]
+                    == dp[i - 1][j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu-1] + (int)physicalGraph.VMInPM[PM].get(i-1).load.mem+1) {
                 item[i] = true;
                 findWhat(i - 1, j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu,dp,item,physicalGraph,PM);
             }
@@ -643,7 +649,7 @@ public class Util {
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //如果某个节点过载，则计算一个SLAV
             if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>hot_threshold){
-                double average = physicalGraph.NodeCapacity[i].cpu/physicalGraph.VMInPM[i].size();
+                double average = (physicalGraph.NodeCapacity[i].cpu*hot_threshold)/physicalGraph.VMInPM[i].size();
                 for (int j = 0; j <physicalGraph.VMInPM[i].size() ; j++) {
                     //这台虚拟机的需求大于物理机给他的分配
                     if(physicalGraph.VMInPM[i].get(j).load.cpu>average){

@@ -1,8 +1,5 @@
 package Exp1;
 
-import Exp1.PhysicalGraph;
-import Exp1.VNode;
-import Exp1.VirtualGraph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +10,7 @@ public class Transfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
+    public double communcationCost = 0;
     public int migrationTime = 0;
     double dis[];
     Util util = new Util();
@@ -30,7 +28,7 @@ public class Transfer {
         VNode vNode = null;
         //从原物理机上删除这个虚拟机
         for (int i = 0; i <physicalGraph.VMInPM[oldPhysicalNode].size() ; i++) {
-            if(physicalGraph.VMInPM[oldPhysicalNode].get(i).id == virtualNode){
+            if(physicalGraph.VMInPM[oldPhysicalNode].get(i).id == virtualNode&&physicalGraph.VMInPM[oldPhysicalNode].get(i).VGnum==VGnum){
                 vNode = physicalGraph.VMInPM[oldPhysicalNode].get(i);
                 physicalGraph.VMInPM[oldPhysicalNode].remove(i);
                 physicalGraph.nodeLoad[oldPhysicalNode].cpu -= vNode.load.cpu;
@@ -60,7 +58,7 @@ public class Transfer {
         Arrays.sort(physicalGraph.temperature);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(physicalGraph.temperature[i].temperature!=0.0){
-               //System.out.println("第"+physicalGraph.temperature[i].PM+"物理机发生过载");
+                communcationCost+=util.calCommunCost(physicalGraph);
                 Queue<VNode> queue = util.VMChoose(physicalGraph, physicalGraph.temperature[i].PM);
                 while(!queue.isEmpty()){
                     VNode vNode = queue.poll();
@@ -110,9 +108,9 @@ public class Transfer {
                                         migrated = true;
                                     }
                                 }
-                                if(migrated)
-                                    TransferVirtualNode(vNode.VGnum,vNode.id,newPM);
                             }
+                            if(migrated)
+                                TransferVirtualNode(vNode.VGnum,vNode.id,newPM);
                         }
                     }
 
@@ -129,6 +127,7 @@ public class Transfer {
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //这是一个冷节点
             if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%10!=0){
+                dis= util.FindMinPath(physicalGraph,i);
                 for (int j = 0; j <physicalGraph.Node ; j++) {
                     if(physicalGraph.Color[i][j].equals("yellow")&&
                             (physicalGraph.nodeLoad[j].cpu+physicalGraph.nodeLoad[i].cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){

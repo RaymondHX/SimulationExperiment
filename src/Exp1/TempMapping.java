@@ -10,6 +10,14 @@ public class TempMapping implements Comparable<TempMapping>{
 
     @Override
     public int compareTo(TempMapping o) {
-        return (int) (o.temperature-this.temperature);
+        if(o.temperature>this.temperature){
+            return 1;
+        }
+        else if(o.temperature == this.temperature){
+            return 0;
+        }
+        else {
+            return -1;
+        }
     }
 }

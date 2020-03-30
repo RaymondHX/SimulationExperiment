@@ -1,19 +1,18 @@
 package Exp1;
 
-
 import Exp2.Bucket;
 import Exp2.GA_Algorithm;
 import Exp3.NewTransfer;
 
 public class Main {
     public static PhysicalGraph physicalGraph1 = new PhysicalGraph();
-    public static VirtualGraph virtualGraphs1[] = new VirtualGraph[50];
+    public static VirtualGraph virtualGraphs1[] = new VirtualGraph[500];
     public static PhysicalGraph physicalGraph2 = new PhysicalGraph();
-    public static VirtualGraph virtualGraphs2[] = new VirtualGraph[50];
+    public static VirtualGraph virtualGraphs2[] = new VirtualGraph[500];
     public static PhysicalGraph physicalGraph3 = new PhysicalGraph();
-    public static VirtualGraph virtualGraphs3[] = new VirtualGraph[50];
+    public static VirtualGraph virtualGraphs3[] = new VirtualGraph[500];
     public static Util util = new Util();
-    public static int VGnum = 50;
+    public static int VGnum = 500;
     public static double totalCostBefore = 0;
     public static double totlalCostAfter = 0;
     public static void main(String[] args) {
@@ -45,24 +44,19 @@ public class Main {
         //计算此时发生过载的节点
         util.CalTemperature(physicalGraph1);
 
-//        System.out.println("原能耗开销："+util.calEnergyConsumption(physicalGraph1));
-        System.out.println("通信开销"+util.calCommunCost(physicalGraph1));
-
-
         Transfer transfer = new Transfer(physicalGraph1, virtualGraphs1);
         while (!weatherStable(physicalGraph1)){
             transfer.Migration(physicalGraph1);
             util.CalTemperature(physicalGraph1);
         }
-        System.out.println("123");
         transfer.migrateColdSpot(physicalGraph1);
-        System.out.println("hh");
         System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph1));
+        System.out.println("通信开销"+transfer.communcationCost);
         System.out.println("迁移开销："+transfer.getMigrationCost());
         System.out.println("迁移次数："+transfer.migrationTime+"\n");
 
 
-        System.out.println("通信开销："+util.calCommunCost(physicalGraph3));
+
         NewTransfer newTransfer = new NewTransfer(physicalGraph3,virtualGraphs3);
         util.CalTemperature(physicalGraph3);
         while(!weatherStable(physicalGraph3)){
@@ -71,12 +65,13 @@ public class Main {
         }
 
         System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph3));
+        System.out.println("通信开销："+transfer.communcationCost);
         System.out.println("迁移开销："+newTransfer.migrationCost);
         System.out.println("迁移次数："+newTransfer.migrationTime+"\n");
 
-//        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,20);
-//        ga_algorithm.FillVM_Index();
-//        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
+        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,1000);
+        ga_algorithm.FillVM_Index();
+        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
     }
 
     public static boolean weatherStable(PhysicalGraph physicalGraph){

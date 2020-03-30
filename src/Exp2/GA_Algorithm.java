@@ -57,7 +57,7 @@ public class GA_Algorithm {
     public void FillVM_Index(){
         VM_index = new VNode[M];
         int k = 0;
-        for (int i = 0; i <50 ; i++) {
+        for (int i = 0; i <2000 ; i++) {
             for (int j = 0; j <virtualGraphs[i].Node ; j++) {
                 VM_index[k] = new VNode(j,virtualGraphs[i].NodeCapacity[j],virtualGraphs[i].id);
                 k++;
