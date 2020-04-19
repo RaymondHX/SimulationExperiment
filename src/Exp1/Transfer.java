@@ -23,7 +23,6 @@ public class Transfer {
     //把一个虚拟机迁移到另一台物理机上
     public void TransferVirtualNode(int VGnum,int virtualNode,int newPhysicalNode){
         migrationTime++;
-       // System.out.println("迁移第"+VGnum+"个虚拟网络上"+"第"+virtualNode+"个"+"虚拟机"+"到物理机"+newPhysicalNode);
         int oldPhysicalNode = virtualGraphs[VGnum].VN2PN[virtualNode];
         VNode vNode = null;
         //从原物理机上删除这个虚拟机
@@ -60,6 +59,9 @@ public class Transfer {
             if(physicalGraph.temperature[i].temperature!=0.0){
                 communcationCost+=util.calCommunCost(physicalGraph);
                 Queue<VNode> queue = util.VMChoose(physicalGraph, physicalGraph.temperature[i].PM);
+                if(queue.size()==0){
+                    System.exit(-1);
+                }
                 while(!queue.isEmpty()){
                     VNode vNode = queue.poll();
                     //找到这个虚拟机所处的物理机

@@ -9,19 +9,19 @@ import java.util.*;
 
 public class Util {
 
-    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\500.brite";
+    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\100.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
     public int VGnum = 500;
-    public double cpu_mean_center = 1000;
-    public double cpu_square_center = 100;
-    public double cpu_mean_side = 100;
-    public double cpu_square_side = 20;
+    public double cpu_mean_center = 150;
+    public double cpu_square_center = 30;
+    public double cpu_mean_side = 150;
+    public double cpu_square_side = 30;
     public double cpu_mean_virtual = 10;
-    public double cpu_square_virtual = 1;
+    public double cpu_square_virtual = 3;
     public double mem_mean_center = 1000;
     public double mem_square_cenetr = 100;
-    public double mem_mean_side = 100;
-    public double mem_square_side = 20;
+    public double mem_mean_side = 150;
+    public double mem_square_side = 40;
     public double mem_mean_virtual = 10;
     public double mem_square_virtual = 1;
     public double edge_mean = 10;
@@ -68,7 +68,7 @@ public class Util {
                 //这些节点为边缘节点
                 else {
                     physicalGraph.NodeCapacity[i].cpu = Math.sqrt(cpu_square_side)*random.nextGaussian()+cpu_mean_side;
-                    physicalGraph.NodeCapacity[i].mem = Math.sqrt(mem_square_side)*random.nextGaussian()+mem_mean_side;
+                    physicalGraph.NodeCapacity[i].mem = physicalGraph.NodeCapacity[i].cpu;
                 }
 
             }
@@ -579,7 +579,7 @@ public class Util {
     //选出需要迁移的虚拟机，使迁出虚拟机的cpu负载大于过载量，并所选的虚拟机的Mem和最小，使用01背包计算
     public Queue<VNode> VMChoose(PhysicalGraph physicalGraph, int PM){
         Queue<VNode> queue = new LinkedList<>();
-        int a = (int)(physicalGraph.NodeCapacity[PM].cpu*0.8)-5;
+        int a = (int)(physicalGraph.NodeCapacity[PM].cpu*0.8)-2;
         int VM[][] = new int[physicalGraph.VMInPM[PM].size()+1][a+1];
         for (int i = 1; i <=physicalGraph.VMInPM[PM].size() ; i++) {
             for (int j = 1; j <=a ; j++) {

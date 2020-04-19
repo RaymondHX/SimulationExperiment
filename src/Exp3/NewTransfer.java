@@ -58,19 +58,25 @@ public class NewTransfer {
                     //System.out.println("jj");
                     VNode vnode = findMaxCpuVirtualMachine(physicalGraph.VMInPM[i]);
                     dis = util.FindMinPath(physicalGraph,i);
+                    int destNode = 0;
+                    double minDis = Double.MAX_VALUE;
                     //找出图中哪些节点满足迁移条件
                     for (int j = 0; j <physicalGraph.Node ; j++) {
                         if((physicalGraph.nodeLoad[j].cpu+vnode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8&&dis[j]!=0){
-                            TransferVirtualNode(vnode.VGnum,vnode.id,j);
-                            break;
+                            if(dis[j]<minDis){
+                                minDis = dis[j];
+                                destNode = j;
+                            }
                         }
                     }
+                    TransferVirtualNode(vnode.VGnum,vnode.id,destNode);
                     if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.8){
                         break;
                     }
                     if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
                         i--;
                     }
+
                 }
 
             }

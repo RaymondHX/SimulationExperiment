@@ -65,13 +65,13 @@ public class Main {
         }
 
         System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph3));
-        System.out.println("通信开销："+transfer.communcationCost);
+        System.out.println("通信开销："+newTransfer.communicationCost);
         System.out.println("迁移开销："+newTransfer.migrationCost);
         System.out.println("迁移次数："+newTransfer.migrationTime+"\n");
 
-        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,1000);
-        ga_algorithm.FillVM_Index();
-        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
+//        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,500);
+//        ga_algorithm.FillVM_Index();
+//        Bucket bucket = ga_algorithm.FindBestCodeWithGA();
     }
 
     public static boolean weatherStable(PhysicalGraph physicalGraph){
