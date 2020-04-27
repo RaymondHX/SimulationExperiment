@@ -55,7 +55,6 @@ public class NewTransfer {
         communicationCost +=util.calCommunCost(physicalGraph);
             for (int i = 0; i <physicalGraph.Node ; i++) {
                 if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
-                    //System.out.println("jj");
                     VNode vnode = findMaxCpuVirtualMachine(physicalGraph.VMInPM[i]);
                     dis = util.FindMinPath(physicalGraph,i);
                     int destNode = 0;
