@@ -43,5 +43,24 @@ public class PhysicalGraph {
 
     }
 
+    /**
+     * 根据虚拟网络中虚拟机资源变化更新物理机资源变化
+     * @param virtualGraphs
+     * @param 
+     */
+    public void updatePhysicalGraph(VirtualGraph[] virtualGraphs){
+        for (int i = 0; i <this.Node ; i++) {
+            double tempCpu = 0;
+            double tempMem = 0;
+            for (int j = 0; j <this.VMInPM[i].size() ; j++) {
+                int VGNum = this.VMInPM[i].get(j).VGnum;
+                int id = this.VMInPM[i].get(j).id;
+                tempCpu += virtualGraphs[VGNum].NodeCapacity[id].cpu;
+                tempMem += virtualGraphs[VGNum].NodeCapacity[id].mem;
+            }
+            this.nodeLoad[i].cpu = tempCpu;
+            this.nodeLoad[i].mem = tempMem;
+        }
+    }
 
 }

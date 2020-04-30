@@ -3,8 +3,15 @@ package Exp4;
 import Exp1.PhysicalGraph;
 import Exp1.VirtualGraph;
 
+import java.util.List;
+
 public class Predict {
-    double[] beta = new double[9];
+    List<LeastSquareMethod> leastSquareMethods;
+    private double hotThreshold = 0.8;
+    private double coldThreshold = 0.2;
+    Predict(List<LeastSquareMethod> leastSquareMethods){
+        this.leastSquareMethods = leastSquareMethods;
+    }
     /**
      * 获取当前时间
      * @param physicalGraph
@@ -22,7 +29,7 @@ public class Predict {
     public boolean overUtilizedHostDetection(PhysicalGraph physicalGraph,int node){
         int t = this.getTime(physicalGraph);
         for (int k = 0; k <6 ; k++) {
-            if(getPredictCpuResourse(physicalGraph,node,t+k*5)<physicalGraph.nodeLoad[node].cpu*0.8){
+            if(getPredictCpuResourse(physicalGraph,node,t+k)<physicalGraph.nodeLoad[node].cpu*0.8){
                 return false;
             }
         }
@@ -37,7 +44,7 @@ public class Predict {
     public boolean underUtilizedHostDetection(PhysicalGraph physicalGraph,int node){
         int t = this.getTime(physicalGraph);
         for (int k = 0; k <6 ; k++) {
-            if(getPredictCpuResourse(physicalGraph,node,t+k*5)>physicalGraph.nodeLoad[node].cpu*0.2){
+            if(getPredictCpuResourse(physicalGraph,node,t+k)>physicalGraph.nodeLoad[node].cpu*0.2){
                 return false;
             }
         }
@@ -45,11 +52,19 @@ public class Predict {
     }
 
 
+    /**
+     * 得到某一时刻某台物理机的预测CPU资源值
+     * @param physicalGraph
+     * @param node
+     * @param t
+     * @return
+     */
     public double getPredictCpuResourse(PhysicalGraph physicalGraph,int node ,int t){
         if(t>288){
-            t = t%288;
+            return leastSquareMethods.get(node).fit(t-288);
         }
-        //todo 利用最小二乘法计算预测
-        return 0;
+        else {
+            return leastSquareMethods.get(node).fit(t);
+        }
     }
 }

@@ -3,18 +3,21 @@ package Exp1;
 import Exp2.Bucket;
 import Exp2.GA_Algorithm;
 import Exp3.NewTransfer;
+import Exp4.LeastSquareMethod;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
-    public static PhysicalGraph physicalGraph1 = new PhysicalGraph();
-    public static VirtualGraph virtualGraphs1[] = new VirtualGraph[500];
-    public static PhysicalGraph physicalGraph2 = new PhysicalGraph();
-    public static VirtualGraph virtualGraphs2[] = new VirtualGraph[500];
-    public static PhysicalGraph physicalGraph3 = new PhysicalGraph();
-    public static VirtualGraph virtualGraphs3[] = new VirtualGraph[500];
-    public static Util util = new Util();
     public static int VGnum = 500;
-    public static double totalCostBefore = 0;
-    public static double totlalCostAfter = 0;
+    public static PhysicalGraph physicalGraph1 = new PhysicalGraph();
+    public static VirtualGraph virtualGraphs1[] = new VirtualGraph[VGnum];
+    public static PhysicalGraph physicalGraph2 = new PhysicalGraph();
+    public static VirtualGraph virtualGraphs2[] = new VirtualGraph[VGnum];
+    public static PhysicalGraph physicalGraph3 = new PhysicalGraph();
+    public static VirtualGraph virtualGraphs3[] = new VirtualGraph[VGnum];
+    public static List<LeastSquareMethod> leastSquareMethods;
+    public static Util util = new Util();
     public static void main(String[] args) {
         for (int i = 0; i < VGnum; i++) {
             virtualGraphs1[i] = new VirtualGraph(i);
@@ -25,6 +28,7 @@ public class Main {
         for (int i = 0; i < VGnum; i++) {
             virtualGraphs3[i] = new VirtualGraph(i);
         }
+        leastSquareMethods = getSquareMethod();
         //构建物理网络拓扑
         util.ConstructPhysicalGraph(physicalGraph1);
         util.ConstructPhysicalGraph(physicalGraph2);
@@ -83,5 +87,42 @@ public class Main {
             }
         }
         return result;
+    }
+
+    /**
+     * 计算每个物理节点的预测函数
+     * @return
+     */
+    public static List<LeastSquareMethod> getSquareMethod(){
+        Util util = new Util();
+        PhysicalGraph physicalGraph = new PhysicalGraph();
+        VirtualGraph[] virtualGraphs = new VirtualGraph[VGnum];
+        util.ConstructPhysicalGraph(physicalGraph);
+        for (int i = 0; i <VGnum ; i++) {
+            virtualGraphs[i] = new VirtualGraph(i);
+        }
+        util.ConstructVirtualGraph(virtualGraphs);
+        for (int i = 0; i <VGnum ; i++) {
+            util.Mapping(physicalGraph,virtualGraphs[i]);
+        }
+        double[] x = new double[288];
+        for (int i = 0; i <288 ; i++) {
+            x[i] = i;
+        }
+        List<LeastSquareMethod> leastSquareMethods = new ArrayList<>();
+        for (int i = 0; i <physicalGraph.Node ; i++) {
+            double[] data = new double[288];
+            for (int t = 0; t <288 ; t++) {
+                for (int j = 0; j <VGnum ; j++) {
+                    virtualGraphs[j].updateVirtualGraph(t);
+                }
+                physicalGraph.updatePhysicalGraph(virtualGraphs);
+                data[t] = physicalGraph.nodeLoad[i].cpu;
+            }
+            LeastSquareMethod leastSquareMethod = new LeastSquareMethod(x,data,5);
+            leastSquareMethods.add(leastSquareMethod);
+        }
+        System.out.println(leastSquareMethods.get(5).fit(5));
+        return leastSquareMethods;
     }
 }

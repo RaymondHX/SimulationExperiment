@@ -436,6 +436,44 @@ public class Util {
         }
     }
 
+
+    public void Mapping(PhysicalGraph physicalGraph,VirtualGraph virtualGraph) {
+        virtualGraph.VN2PN = new int[virtualGraph.Node];
+
+        Arrays.fill(virtualGraph.VN2PN,-1);
+
+        virtualGraph.VE2PE = new List[virtualGraph.Node][virtualGraph.Node];
+
+        for (int i = 0; i <virtualGraph.Node ; i++) {
+            for (int j = 0; j <virtualGraph.Node ; j++) {
+                virtualGraph.VE2PE[i][j] = new ArrayList();
+
+            }
+        }
+        //这里选择把一个虚拟机随机映射到某一个物理机上
+        for (int i = 0; i <virtualGraph.Node ; i++) {
+            Random rd = new Random();
+            int random = rd.nextInt(physicalGraph.Node);
+            if(random%9==0&&physicalGraph.VMInPM[random].size()==0){
+                virtualGraph.VN2PN[i] = random;
+                physicalGraph.VMInPM[random].add(new VNode(i,virtualGraph.NodeCapacity[i],virtualGraph.id));
+                physicalGraph.nodeLoad[random].cpu += virtualGraph.NodeCapacity[i].cpu;
+                physicalGraph.nodeLoad[random].mem += virtualGraph.NodeCapacity[i].mem;
+            }
+            //判断加入这台虚拟机后物理机资源利用率是否大于1
+            else if(physicalGraph.nodeLoad[random].cpu+virtualGraph.NodeCapacity[i].cpu<physicalGraph.NodeCapacity[random].cpu
+                    &&physicalGraph.nodeLoad[random].mem+virtualGraph.NodeCapacity[i].mem<physicalGraph.NodeCapacity[random].mem&&random%9!=0){
+                virtualGraph.VN2PN[i] = random;
+                physicalGraph.VMInPM[random].add(new VNode(i,virtualGraph.NodeCapacity[i],virtualGraph.id));
+                physicalGraph.nodeLoad[random].cpu += virtualGraph.NodeCapacity[i].cpu;
+                physicalGraph.nodeLoad[random].mem += virtualGraph.NodeCapacity[i].mem;
+            }
+            else {
+                i--;
+            }
+        }
+    }
+
     /**
      * 根据颜色图，找到迁移的路径
      * @param physicalGraph
