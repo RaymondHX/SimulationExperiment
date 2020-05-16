@@ -73,8 +73,10 @@ public class VirtualGraph {
      * @param t t时刻 以五分钟为单位，t每加1代表五分钟
      */
     public void updateVirtualGraph(int t){
-        NodeCapacity[0] = nodeChange[0][t];
-        NodeCapacity[1] = nodeChange[1][t];
+        NodeCapacity[0].cpu = nodeChange[0][t].cpu;
+        NodeCapacity[0].mem = nodeChange[0][t].mem;
+        NodeCapacity[1].cpu = nodeChange[1][t].cpu;
+        NodeCapacity[1].mem = nodeChange[1][t].mem;
     }
 
 }

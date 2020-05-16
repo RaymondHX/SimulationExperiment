@@ -6,6 +6,10 @@ import java.util.List;
 
 public class PhysicalGraph {
     /**
+     * 当前时间
+     */
+    public int t = 0;
+    /**
      * 节点数量
      * */
     public int Node;
@@ -13,6 +17,11 @@ public class PhysicalGraph {
      * 物理链路数量
      */
     public int Edge;
+    public Load[][] loadHistory;
+    /**
+     * 每个节点开启的能耗开销
+     */
+    public double[] nodePower;
     /**
      * 节点的容量，cpu和mem两个部分
      */
@@ -50,6 +59,11 @@ public class PhysicalGraph {
      */
     public void updatePhysicalGraph(VirtualGraph[] virtualGraphs){
         for (int i = 0; i <this.Node ; i++) {
+            loadHistory[i][t].cpu = nodeLoad[i].cpu;
+            loadHistory[i][t].mem= nodeLoad[i].mem;
+        }
+        updateTime();
+        for (int i = 0; i <this.Node ; i++) {
             double tempCpu = 0;
             double tempMem = 0;
             for (int j = 0; j <this.VMInPM[i].size() ; j++) {
@@ -60,6 +74,15 @@ public class PhysicalGraph {
             }
             this.nodeLoad[i].cpu = tempCpu;
             this.nodeLoad[i].mem = tempMem;
+            loadHistory[i][t].cpu = tempCpu;
+            loadHistory[i][t].mem= tempMem;
+        }
+    }
+
+    public void updateTime(){
+        t++;
+        if(t>=288){
+            t = 0;
         }
     }
 

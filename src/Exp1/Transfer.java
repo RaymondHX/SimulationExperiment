@@ -1,6 +1,8 @@
 package Exp1;
 
 
+import Exp4.LeastSquareMethod;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,12 +14,14 @@ public class Transfer {
     public double migrationCost = 0;
     public double communcationCost = 0;
     public int migrationTime = 0;
+    List<LeastSquareMethod> leastSquareMethods;
     double dis[];
     Util util = new Util();
 
-    public  Transfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
+    public  Transfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[],List<LeastSquareMethod> leastSquareMethods){
         this.physicalGraph = physicalGraph;
         this.virtualGraphs = virtualGraphs;
+        this.leastSquareMethods = leastSquareMethods;
     }
 
     //把一个虚拟机迁移到另一台物理机上
@@ -47,21 +51,23 @@ public class Transfer {
         //更新颜色图
         util.updatePhysicalCompleteGraph(physicalGraph,oldPhysicalNode,newPhysicalNode);
 
-
     }
 
 
     //选出需要迁移的节点和迁移到的节点
-    public void Migration(PhysicalGraph physicalGraph){
+    public void migration(PhysicalGraph physicalGraph){
+        Predict1 predict1 = new Predict1(leastSquareMethods);
         //按降序对temprature排序
         Arrays.sort(physicalGraph.temperature);
         for (int i = 0; i <physicalGraph.Node ; i++) {
-            if(physicalGraph.temperature[i].temperature!=0.0){
+            if(physicalGraph.temperature[i].temperature!=0.0&&predict1.overUtilizedHostDetection(physicalGraph,physicalGraph.temperature[i].PM)){
                 communcationCost+=util.calCommunCost(physicalGraph);
                 Queue<VNode> queue = util.VMChoose(physicalGraph, physicalGraph.temperature[i].PM);
                 if(queue.size()==0){
+                    System.out.println("未选出虚拟机");
                     System.exit(-1);
                 }
+  //              System.out.println(queue.size());
                 while(!queue.isEmpty()){
                     VNode vNode = queue.poll();
                     //找到这个虚拟机所处的物理机
@@ -83,8 +89,10 @@ public class Transfer {
                             }
                         }
                     }
-                    if(migrated)
+                    if(migrated){
                         TransferVirtualNode(vNode.VGnum,vNode.id,newPM);
+                    }
+
                     else {
                         //没有绿边时选择黄边
                         for (int j = 0; j <physicalGraph.Node ; j++) {
@@ -97,8 +105,9 @@ public class Transfer {
                                 }
                             }
                         }
-                        if (migrated)
+                        if (migrated){
                             TransferVirtualNode(vNode.VGnum,vNode.id,newPM);
+                        }
                         else {
                             //没有黄边时选择蓝边
                             for (int j = 0; j <physicalGraph.Node ; j++) {
@@ -111,8 +120,10 @@ public class Transfer {
                                     }
                                 }
                             }
-                            if(migrated)
+                            if(migrated){
                                 TransferVirtualNode(vNode.VGnum,vNode.id,newPM);
+                            }
+
                         }
                     }
 

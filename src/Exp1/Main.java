@@ -4,6 +4,7 @@ import Exp2.Bucket;
 import Exp2.GA_Algorithm;
 import Exp3.NewTransfer;
 import Exp4.LeastSquareMethod;
+import Exp4.Transfer4;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,33 +46,73 @@ public class Main {
         }
         //生成物理网络拓扑中颜色完全图
         util.ConstructPhysicalCompleteGraph(physicalGraph1);
-        //计算此时发生过载的节点
-        util.CalTemperature(physicalGraph1);
 
-        Transfer transfer = new Transfer(physicalGraph1, virtualGraphs1);
-        while (!weatherStable(physicalGraph1)){
-            transfer.Migration(physicalGraph1);
-            util.CalTemperature(physicalGraph1);
+        Transfer transfer = new Transfer(physicalGraph1,virtualGraphs1,leastSquareMethods);
+        for (int t = 0; t <30 ; t++) {
+            for (int j = 0; j <VGnum ; j++) {
+                virtualGraphs1[j].updateVirtualGraph(t);
+            }
+            physicalGraph1.updatePhysicalGraph(virtualGraphs1);
         }
-        transfer.migrateColdSpot(physicalGraph1);
-        System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph1));
+        util.ConstructPhysicalCompleteGraph(physicalGraph1);
+        for (int t = 30; t <278 ; t++) {
+            for (int j = 0; j <VGnum ; j++) {
+                virtualGraphs1[j].updateVirtualGraph(t);
+            }
+            physicalGraph1.updatePhysicalGraph(virtualGraphs1);
+            util.ConstructPhysicalCompleteGraph(physicalGraph1);
+            util.calTemperature(physicalGraph1);
+            transfer.migration(physicalGraph1);
+        }
         System.out.println("通信开销"+transfer.communcationCost);
-        System.out.println("迁移开销："+transfer.getMigrationCost());
+        System.out.println("迁移开销："+transfer.migrationCost);
         System.out.println("迁移次数："+transfer.migrationTime+"\n");
 
-
-
-        NewTransfer newTransfer = new NewTransfer(physicalGraph3,virtualGraphs3);
-        util.CalTemperature(physicalGraph3);
-        while(!weatherStable(physicalGraph3)){
-            newTransfer.Migration(physicalGraph3);
-            util.CalTemperature(physicalGraph3);
+        Transfer4 transfer4 = new Transfer4(physicalGraph2,virtualGraphs2);
+        for (int t = 0; t <30 ; t++) {
+            for (int j = 0; j <VGnum ; j++) {
+                virtualGraphs2[j].updateVirtualGraph(t);
+            }
+            physicalGraph2.updatePhysicalGraph(virtualGraphs2);
         }
+        for (int t = 30; t <278 ; t++) {
+            for (int j = 0; j <VGnum ; j++) {
+                virtualGraphs2[j].updateVirtualGraph(t);
+            }
+            physicalGraph2.updatePhysicalGraph(virtualGraphs2);
 
-        System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph3));
-        System.out.println("通信开销："+newTransfer.communicationCost);
-        System.out.println("迁移开销："+newTransfer.migrationCost);
-        System.out.println("迁移次数："+newTransfer.migrationTime+"\n");
+            transfer4.nodeChoose();
+        }
+        System.out.println("通信开销"+transfer4.communcationCost);
+        System.out.println("迁移开销："+transfer4.migrationCost);
+        System.out.println("迁移次数："+transfer4.migrationTime+"\n");
+//        //计算此时发生过载的节点
+//        util.CalTemperature(physicalGraph1);
+//
+//        Transfer transfer = new Transfer(physicalGraph1, virtualGraphs1);
+//        while (!weatherStable(physicalGraph1)){
+//            transfer.Migration(physicalGraph1);
+//            util.CalTemperature(physicalGraph1);
+//        }
+//        transfer.migrateColdSpot(physicalGraph1);
+//        System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph1));
+//        System.out.println("通信开销"+transfer.communcationCost);
+//        System.out.println("迁移开销："+transfer.getMigrationCost());
+//        System.out.println("迁移次数："+transfer.migrationTime+"\n");
+//
+//
+//
+//        NewTransfer newTransfer = new NewTransfer(physicalGraph3,virtualGraphs3);
+//        util.CalTemperature(physicalGraph3);
+//        while(!weatherStable(physicalGraph3)){
+//            newTransfer.Migration(physicalGraph3);
+//            util.CalTemperature(physicalGraph3);
+//        }
+//
+//        System.out.println("能耗开销："+util.calEnergyConsumption(physicalGraph3));
+//        System.out.println("通信开销："+newTransfer.communicationCost);
+//        System.out.println("迁移开销："+newTransfer.migrationCost);
+//        System.out.println("迁移次数："+newTransfer.migrationTime+"\n");
 
 //        GA_Algorithm ga_algorithm = new GA_Algorithm(physicalGraph2,virtualGraphs2,VGnum*2,500);
 //        ga_algorithm.FillVM_Index();
@@ -81,7 +122,7 @@ public class Main {
     public static boolean weatherStable(PhysicalGraph physicalGraph){
         boolean result = true;
         for (int i = 0; i <physicalGraph.Node ; i++) {
-            if(physicalGraph.temperature[i].temperature!=0){
+            if(physicalGraph.nodeLoad[i].cpu>physicalGraph.NodeCapacity[i].cpu*0.8){
                 result = false;
                 break;
             }
@@ -122,7 +163,7 @@ public class Main {
             LeastSquareMethod leastSquareMethod = new LeastSquareMethod(x,data,5);
             leastSquareMethods.add(leastSquareMethod);
         }
-        System.out.println(leastSquareMethods.get(5).fit(5));
+        System.out.println(leastSquareMethods.get(3).fit(280));
         return leastSquareMethods;
     }
 }

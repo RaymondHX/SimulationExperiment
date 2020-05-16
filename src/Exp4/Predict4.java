@@ -5,20 +5,16 @@ import Exp1.VirtualGraph;
 
 import java.util.List;
 
-public class Predict {
-    List<LeastSquareMethod> leastSquareMethods;
+public class Predict4 {
     private double hotThreshold = 0.8;
     private double coldThreshold = 0.2;
-    Predict(List<LeastSquareMethod> leastSquareMethods){
-        this.leastSquareMethods = leastSquareMethods;
-    }
     /**
      * 获取当前时间
      * @param physicalGraph
      * @return
      */
     public int getTime(PhysicalGraph physicalGraph){
-        return 0;
+        return physicalGraph.t;
     }
 
     /**
@@ -28,8 +24,12 @@ public class Predict {
      */
     public boolean overUtilizedHostDetection(PhysicalGraph physicalGraph,int node){
         int t = this.getTime(physicalGraph);
+        if(physicalGraph.nodeLoad[node].cpu<physicalGraph.NodeCapacity[node].cpu*hotThreshold){
+            return false;
+        }
         for (int k = 0; k <6 ; k++) {
-            if(getPredictCpuResourse(physicalGraph,node,t+k)<physicalGraph.nodeLoad[node].cpu*0.8){
+            double temp = MUP.UP(physicalGraph,k+1,t+k+1,node);
+            if(temp<physicalGraph.NodeCapacity[node].cpu*hotThreshold){
                 return false;
             }
         }
@@ -43,8 +43,12 @@ public class Predict {
      */
     public boolean underUtilizedHostDetection(PhysicalGraph physicalGraph,int node){
         int t = this.getTime(physicalGraph);
+        if(physicalGraph.nodeLoad[node].cpu>physicalGraph.NodeCapacity[node].cpu*coldThreshold){
+            return false;
+        }
         for (int k = 0; k <6 ; k++) {
-            if(getPredictCpuResourse(physicalGraph,node,t+k)>physicalGraph.nodeLoad[node].cpu*0.2){
+            double temp = MUP.UP(physicalGraph,k+1,t,node);
+            if(temp>physicalGraph.NodeCapacity[node].cpu*coldThreshold){
                 return false;
             }
         }
@@ -52,19 +56,4 @@ public class Predict {
     }
 
 
-    /**
-     * 得到某一时刻某台物理机的预测CPU资源值
-     * @param physicalGraph
-     * @param node
-     * @param t
-     * @return
-     */
-    public double getPredictCpuResourse(PhysicalGraph physicalGraph,int node ,int t){
-        if(t>288){
-            return leastSquareMethods.get(node).fit(t-288);
-        }
-        else {
-            return leastSquareMethods.get(node).fit(t);
-        }
-    }
 }
