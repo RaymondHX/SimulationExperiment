@@ -48,6 +48,7 @@ public class PhysicalGraph {
 
     boolean [][] path;
 
+    public double communcationCost = 0;
     public PhysicalGraph() {
 
     }
@@ -58,6 +59,8 @@ public class PhysicalGraph {
      * @param 
      */
     public void updatePhysicalGraph(VirtualGraph[] virtualGraphs){
+        Util util = new Util();
+        communcationCost+=util.calCommunCost(this);
         for (int i = 0; i <this.Node ; i++) {
             loadHistory[i][t].cpu = nodeLoad[i].cpu;
             loadHistory[i][t].mem= nodeLoad[i].mem;

@@ -10,6 +10,9 @@ public class MUP {
         for (int i = 0; i <n-m ; i++) {
             x[i][0] = 1;
             for (int j = t-n+i; j <t-n+i+m ; j++) {
+                if(physicalGraph.loadHistory[node][j].cpu==0){
+                    return physicalGraph.NodeCapacity[node].cpu*0.5;
+                }
                 x[i][j-t+n-i+1] = physicalGraph.loadHistory[node][j].cpu;
             }
             y[i][0] = physicalGraph.loadHistory[node][i+t-n+m].cpu;

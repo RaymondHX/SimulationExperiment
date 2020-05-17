@@ -1,10 +1,8 @@
 package Exp4;
 
-import Exp1.PhysicalGraph;
-import Exp1.Util;
-import Exp1.VNode;
-import Exp1.VirtualGraph;
+import Exp1.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Transfer4 {
@@ -12,7 +10,6 @@ public class Transfer4 {
     VirtualGraph[] virtualGraphs;
     Util util = new Util();
     public double migrationCost = 0;
-    public double communcationCost = 0;
     public int migrationTime = 0;
     double dis[];
     public Transfer4(PhysicalGraph physicalGraph,VirtualGraph[] virtualGraphs){
@@ -56,7 +53,6 @@ public class Transfer4 {
         Predict4 predict4 = new Predict4();
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(predict4.overUtilizedHostDetection(physicalGraph,i)){
-                communcationCost+= util.calCommunCost(physicalGraph);
                 while (predict4.overUtilizedHostDetection(physicalGraph,i)){
                     double max = Double.MIN_VALUE;
                     int transferVN = 0;
@@ -84,31 +80,6 @@ public class Transfer4 {
                     }
                     transferVirtualNode(physicalGraph.VMInPM[i].get(transferVN).VGnum,physicalGraph.VMInPM[i].get(transferVN).id,targetNode);
                 }
-                double max = Double.MIN_VALUE;
-                int transferVN = 0;
-                int vmSize = physicalGraph.VMInPM[i].size();
-                //选出需要迁移的虚拟机
-                for (int j = 0; j <vmSize ; j++) {
-                    VNode vNode = physicalGraph.VMInPM[i].get(j);
-                    double temp = RT(i,vNode)*vNode.load.mem;
-                    if(temp>max){
-                        transferVN = j;
-                        max = temp;
-                    }
-                }
-                //选出要迁移到的节点
-                double power = Double.MAX_VALUE;
-                int targetNode = 0;
-                for (int j = 0; j <physicalGraph.Node ; j++) {
-                    //加入后仍然满足
-                    if(physicalGraph.nodeLoad[j].cpu+physicalGraph.VMInPM[i].get(transferVN).load.cpu<physicalGraph.NodeCapacity[j].cpu*0.8){
-                        if(physicalGraph.nodePower[j]<power){
-                            power = physicalGraph.nodePower[j];
-                            targetNode = j;
-                        }
-                    }
-                }
-                transferVirtualNode(physicalGraph.VMInPM[i].get(transferVN).VGnum,physicalGraph.VMInPM[i].get(transferVN).id,targetNode);
             }
         }
     }
@@ -117,5 +88,32 @@ public class Transfer4 {
         double u = physicalGraph.nodeLoad[node].cpu-vNode.load.cpu;
         double h = physicalGraph.NodeCapacity[node].cpu;
         return Math.pow(u-h,2);
+    }
+
+    /**
+     * 迁移冷节点
+     * @param physicalGraph
+     */
+    public void migrateColdSpot(PhysicalGraph physicalGraph){
+        Predict4 predict4 = new Predict4();
+        for (int i = 0; i <physicalGraph.Node ; i++) {
+            //这是一个冷节点
+            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%10!=0&&physicalGraph.nodeLoad[i].cpu!=0
+                    &&predict4.underUtilizedHostDetection(physicalGraph,i)){
+                dis= util.FindMinPath(physicalGraph,i);
+                for (int j = 0; j <physicalGraph.Node ; j++) {
+                    if((physicalGraph.nodeLoad[j].cpu+physicalGraph.nodeLoad[i].cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
+                        List<VNode> VMlist = physicalGraph.VMInPM[i];
+                        List<VNode> temp = new ArrayList<>();
+                        for (int k = 0; k <VMlist.size() ; k++) {
+                            temp.add(new VNode(VMlist.get(k).id,VMlist.get(k).load,VMlist.get(k).VGnum));
+                        }
+                        for (int k = 0; k <temp.size() ; k++) {
+                            transferVirtualNode(temp.get(k).VGnum,temp.get(k).id,j);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -12,7 +12,6 @@ public class Transfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
-    public double communcationCost = 0;
     public int migrationTime = 0;
     List<LeastSquareMethod> leastSquareMethods;
     double dis[];
@@ -61,7 +60,6 @@ public class Transfer {
         Arrays.sort(physicalGraph.temperature);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(physicalGraph.temperature[i].temperature!=0.0&&predict1.overUtilizedHostDetection(physicalGraph,physicalGraph.temperature[i].PM)){
-                communcationCost+=util.calCommunCost(physicalGraph);
                 Queue<VNode> queue = util.VMChoose(physicalGraph, physicalGraph.temperature[i].PM);
                 if(queue.size()==0){
                     System.out.println("未选出虚拟机");
@@ -137,9 +135,11 @@ public class Transfer {
      * @param physicalGraph
      */
     public void migrateColdSpot(PhysicalGraph physicalGraph){
+        Predict1 predict1 = new Predict1(leastSquareMethods);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //这是一个冷节点
-            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%10!=0){
+            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%10!=0&&physicalGraph.nodeLoad[i].cpu!=0
+            &&predict1.underUtilizedHostDetection(physicalGraph,i)){
                 dis= util.FindMinPath(physicalGraph,i);
                 for (int j = 0; j <physicalGraph.Node ; j++) {
                     if(physicalGraph.Color[i][j].equals("yellow")&&

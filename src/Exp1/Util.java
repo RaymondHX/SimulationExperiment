@@ -9,12 +9,12 @@ import java.util.*;
 
 public class Util {
 
-    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\100.brite";
+    public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\1000.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
-    public int VGnum = 500;
-    public double cpu_mean_center = 150;
-    public double cpu_square_center = 30;
-    public double cpu_mean_side = 150;
+    public int VGnum = 3500;
+    public double cpu_mean_center = 1500;
+    public double cpu_square_center = 300;
+    public double cpu_mean_side = 100;
     public double cpu_square_side = 30;
     public double cpu_mean_virtual = 10;
     public double cpu_square_virtual = 3;
@@ -638,12 +638,12 @@ public class Util {
         for (int i = 1; i < number + 1; i++) {
             total+=weight[i];
         }
-        System.out.println("total:"+total);
-        System.out.println("load:"+physicalGraph.nodeLoad[PM].cpu);
-        System.out.println("capacity:"+capacity);
-        if(total<physicalGraph.nodeLoad[PM].cpu){
-            System.out.println();
-        }
+//        System.out.println("total:"+total);
+//        System.out.println("load:"+physicalGraph.nodeLoad[PM].cpu);
+//        System.out.println("capacity:"+capacity);
+//        if(total<physicalGraph.nodeLoad[PM].cpu){
+//            System.out.println();
+//        }
         value[0] = 0;
         for (int i = 1; i < number + 1; i++) {
             value[i] = (int)physicalGraph.VMInPM[PM].get(i-1).load.mem+1;
@@ -672,16 +672,6 @@ public class Util {
             }
         }
 
-//        System.out.println();
-//        System.out.println("动态规划表如下：");
-//        for (int i = 0; i < number + 1; i++) {
-//            for (int j = 0; j < capacity + 1; j++) {
-//                System.out.print(v[i][j] + "\t");
-//            }
-//            System.out.println();
-//        }
-//        System.out.println("背包内最大的物品价值总和为：" + v[number][capacity]);// 有number个物品可选，且背包的容量为capacity的情况下，能装入背包的最大价值
-
         /* 3.价值最大时，包内装入了哪些物品？ */
 
         int[] item = new int[number + 1];// 下标i对应的物品若被选中，设置值为1
@@ -705,25 +695,6 @@ public class Util {
         return queue;
     }
 
-    private void findWhat(int i,int j, int[][] dp,boolean[] item,PhysicalGraph physicalGraph,int PM) {
-        if (i > 0) {
-            if (dp[i][j] == dp[i - 1][j]) {
-                item[i] = false;
-                findWhat(i - 1, j,dp,item,physicalGraph,PM);
-            } else if (j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu >= 0 && dp[i][j]
-                    == dp[i - 1][j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu-1] + (int)physicalGraph.VMInPM[PM].get(i-1).load.mem) {
-                item[i] = true;
-                findWhat(i - 1, j - (int)physicalGraph.VMInPM[PM].get(i-1).load.cpu-1,dp,item,physicalGraph,PM);
-            }
-        }
-    }
-
-    private int max(int a,int b){
-        if(a>b)
-            return a;
-        else
-            return b;
-    }
 
     /**
      * 计算能耗

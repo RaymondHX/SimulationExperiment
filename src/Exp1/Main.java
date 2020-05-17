@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static int VGnum = 500;
+    public static int VGnum = 3500;
     public static PhysicalGraph physicalGraph1 = new PhysicalGraph();
     public static VirtualGraph virtualGraphs1[] = new VirtualGraph[VGnum];
     public static PhysicalGraph physicalGraph2 = new PhysicalGraph();
@@ -55,7 +55,9 @@ public class Main {
             physicalGraph1.updatePhysicalGraph(virtualGraphs1);
         }
         util.ConstructPhysicalCompleteGraph(physicalGraph1);
+        int energyCost1 = 0;
         for (int t = 30; t <278 ; t++) {
+            energyCost1+= util.calEnergyConsumption(physicalGraph1);
             for (int j = 0; j <VGnum ; j++) {
                 virtualGraphs1[j].updateVirtualGraph(t);
             }
@@ -63,8 +65,11 @@ public class Main {
             util.ConstructPhysicalCompleteGraph(physicalGraph1);
             util.calTemperature(physicalGraph1);
             transfer.migration(physicalGraph1);
+            transfer.migrateColdSpot(physicalGraph1);
+            System.out.println(t);
         }
-        System.out.println("通信开销"+transfer.communcationCost);
+        System.out.println("能耗开销:"+energyCost1/248);
+        System.out.println("通信开销"+physicalGraph1.communcationCost);
         System.out.println("迁移开销："+transfer.migrationCost);
         System.out.println("迁移次数："+transfer.migrationTime+"\n");
 
@@ -75,15 +80,19 @@ public class Main {
             }
             physicalGraph2.updatePhysicalGraph(virtualGraphs2);
         }
+        int energyCost2 = 0;
         for (int t = 30; t <278 ; t++) {
+            energyCost2 += util.calEnergyConsumption(physicalGraph2);
             for (int j = 0; j <VGnum ; j++) {
                 virtualGraphs2[j].updateVirtualGraph(t);
             }
             physicalGraph2.updatePhysicalGraph(virtualGraphs2);
 
             transfer4.nodeChoose();
+            transfer4.migrateColdSpot(physicalGraph2);
         }
-        System.out.println("通信开销"+transfer4.communcationCost);
+        System.out.println("能耗开销:"+energyCost2/248);
+        System.out.println("通信开销"+physicalGraph2.communcationCost);
         System.out.println("迁移开销："+transfer4.migrationCost);
         System.out.println("迁移次数："+transfer4.migrationTime+"\n");
 //        //计算此时发生过载的节点
@@ -162,6 +171,7 @@ public class Main {
             }
             LeastSquareMethod leastSquareMethod = new LeastSquareMethod(x,data,5);
             leastSquareMethods.add(leastSquareMethod);
+            System.out.println(i);
         }
         System.out.println(leastSquareMethods.get(3).fit(280));
         return leastSquareMethods;
