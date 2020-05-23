@@ -23,10 +23,13 @@ public class MUP {
             Matrix temp = (XM.transpose().times(XM)).inverse();
         }catch (Exception e){
             Matrix matrix = XM.transpose().times(XM);
-            System.out.println(matrix.det());
+            for (int i = 0; i <n-m ; i++) {
+                for (int j = 0; j <m+1 ; j++) {
+                    System.out.printf("%f ",x[i][j]);
+                }
+                System.out.println();
+            }
         }
-
-       // double[][] doubles = temp.getArray();
         Matrix BetaM = (((XM.transpose().times(XM)).inverse()) .times(XM.transpose())).times(YM);
         double UDP[][] = new double[m+1][1];
         UDP[0][0] = 1;
@@ -35,7 +38,12 @@ public class MUP {
         }
         Matrix UDPM = new Matrix(UDP);
         double next = BetaM.transpose().times(UDPM).get(0,0);
+        if(next<0||next>10000){
+            next = 50;
+        }
         physicalGraph.loadHistory[node][t].cpu = next;
+        //System.out.println(next);
         return next;
+
     }
 }

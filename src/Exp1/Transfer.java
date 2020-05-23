@@ -12,6 +12,7 @@ public class Transfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
+    public double communicationCost = 0;
     public int migrationTime = 0;
     List<LeastSquareMethod> leastSquareMethods;
     double dis[];
@@ -33,8 +34,15 @@ public class Transfer {
             if(physicalGraph.VMInPM[oldPhysicalNode].get(i).id == virtualNode&&physicalGraph.VMInPM[oldPhysicalNode].get(i).VGnum==VGnum){
                 vNode = physicalGraph.VMInPM[oldPhysicalNode].get(i);
                 physicalGraph.VMInPM[oldPhysicalNode].remove(i);
+//                System.out.println(physicalGraph.nodeLoad[oldPhysicalNode].cpu);
+//                System.out.println(vNode.load.cpu);
                 physicalGraph.nodeLoad[oldPhysicalNode].cpu -= vNode.load.cpu;
                 physicalGraph.nodeLoad[oldPhysicalNode].mem -= vNode.load.mem;
+                if(physicalGraph.nodeLoad[oldPhysicalNode].cpu==1.7763568394002505E-15){
+                    physicalGraph.nodeLoad[oldPhysicalNode].cpu = 0;
+                    physicalGraph.nodeLoad[oldPhysicalNode].mem = 0;
+
+                }
                 //计算一次迁移开销
                 migrationCost  += vNode.load.mem*dis[newPhysicalNode]*10;
                 break;
@@ -59,7 +67,8 @@ public class Transfer {
         //按降序对temprature排序
         Arrays.sort(physicalGraph.temperature);
         for (int i = 0; i <physicalGraph.Node ; i++) {
-            if(physicalGraph.temperature[i].temperature!=0.0&&predict1.overUtilizedHostDetection(physicalGraph,physicalGraph.temperature[i].PM)){
+            if(physicalGraph.temperature[i].temperature!=0.0){
+                communicationCost += util.calCommunCost(physicalGraph);
                 Queue<VNode> queue = util.VMChoose(physicalGraph, physicalGraph.temperature[i].PM);
                 if(queue.size()==0){
                     System.out.println("未选出虚拟机");
@@ -79,7 +88,7 @@ public class Transfer {
                     for (int j = 0; j <physicalGraph.Node ; j++) {
                         //System.out.println(dis[j]);
                         if(physicalGraph.Color[PMid][j].equals("green")
-                                &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
+                                &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)<(physicalGraph.NodeCapacity[j].cpu*0.8)){
                             if(dis[j]<min_dis){
                                 min_dis = dis[j];
                                 newPM = j;
@@ -95,7 +104,7 @@ public class Transfer {
                         //没有绿边时选择黄边
                         for (int j = 0; j <physicalGraph.Node ; j++) {
                             if(physicalGraph.Color[PMid][j].equals("yellow")
-                                    &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
+                                    &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)<(physicalGraph.NodeCapacity[j].cpu*0.8)){
                                 if(dis[j]<min_dis){
                                     min_dis = dis[j];
                                     newPM = j;
@@ -110,7 +119,7 @@ public class Transfer {
                             //没有黄边时选择蓝边
                             for (int j = 0; j <physicalGraph.Node ; j++) {
                                 if(physicalGraph.Color[PMid][j].equals("blue")
-                                        &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8){
+                                        &&(physicalGraph.nodeLoad[j].cpu+vNode.load.cpu)<(physicalGraph.NodeCapacity[j].cpu*0.8)){
                                     if(dis[j]<min_dis){
                                         min_dis = dis[j];
                                         newPM = j;
@@ -138,8 +147,8 @@ public class Transfer {
         Predict1 predict1 = new Predict1(leastSquareMethods);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             //这是一个冷节点
-            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%10!=0&&physicalGraph.nodeLoad[i].cpu!=0
-            &&predict1.underUtilizedHostDetection(physicalGraph,i)){
+            if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.2&&i%100!=0&&physicalGraph.nodeLoad[i].cpu!=0
+                    ){
                 dis= util.FindMinPath(physicalGraph,i);
                 for (int j = 0; j <physicalGraph.Node ; j++) {
                     if(physicalGraph.Color[i][j].equals("yellow")&&
@@ -147,14 +156,19 @@ public class Transfer {
                         List<VNode> VMlist = physicalGraph.VMInPM[i];
                         List<VNode> temp = new ArrayList<>();
                         for (int k = 0; k <VMlist.size() ; k++) {
-                            temp.add(new VNode(VMlist.get(k).id,VMlist.get(k).load,VMlist.get(k).VGnum));
+                            Load load = new Load();
+                            load.cpu = VMlist.get(k).load.cpu;
+                            load.mem = VMlist.get(k).load.mem;
+                            temp.add(new VNode(VMlist.get(k).id,load,VMlist.get(k).VGnum));
                         }
                         for (int k = 0; k <temp.size() ; k++) {
                             TransferVirtualNode(temp.get(k).VGnum,temp.get(k).id,j);
                         }
                     }
                 }
+               // System.out.println(physicalGraph.nodeLoad[i].cpu);
             }
+
         }
     }
 

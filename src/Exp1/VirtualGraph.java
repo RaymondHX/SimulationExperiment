@@ -37,22 +37,24 @@ public class VirtualGraph {
      */
     public void initialResourceChange(){
         //0-8点处于一个低峰
-        for (int i = 0; i <96 ; i++) {
-            nodeChange[0][i].cpu = NormalDistribution(6,2);
-            nodeChange[0][i].mem = nodeChange[0][i].cpu;
-            nodeChange[1][i].cpu = NormalDistribution(6,2);
-            nodeChange[1][i].mem = nodeChange[1][i].cpu;
-        }
-        //8-24为一个上升趋势
         float increase = 0;
-        for (int i = 96; i <288 ; i++) {
-            nodeChange[0][i].cpu = NormalDistribution((float) (6+increase*0.3),2);
+        for (int i = 0; i <192 ; i++) {
+            nodeChange[0][i].cpu = NormalDistribution((float) (10.8-increase*0.3),2);
             nodeChange[0][i].mem = nodeChange[0][i].cpu;
-            nodeChange[1][i].cpu = NormalDistribution((float) (6+increase*0.3),2);
+            nodeChange[1][i].cpu = NormalDistribution((float) (10.8-increase*0.3),2);
             nodeChange[1][i].mem = nodeChange[1][i].cpu;
             if(i%12==0){
                 increase++;
             }
+
+        }
+        //8-24为一个上升趋势
+
+        for (int i = 192; i <288 ; i++) {
+            nodeChange[0][i].cpu = NormalDistribution(6,2);
+            nodeChange[0][i].mem = nodeChange[0][i].cpu;
+            nodeChange[1][i].cpu = NormalDistribution(6,2);
+            nodeChange[1][i].mem = nodeChange[1][i].cpu;
         }
     }
 

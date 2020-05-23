@@ -11,6 +11,7 @@ public class Transfer4 {
     Util util = new Util();
     public double migrationCost = 0;
     public int migrationTime = 0;
+    public double communicationCost = 0;
     double dis[];
     public Transfer4(PhysicalGraph physicalGraph,VirtualGraph[] virtualGraphs){
         this.physicalGraph = physicalGraph;
@@ -53,6 +54,7 @@ public class Transfer4 {
         Predict4 predict4 = new Predict4();
         for (int i = 0; i <physicalGraph.Node ; i++) {
             if(predict4.overUtilizedHostDetection(physicalGraph,i)){
+                communicationCost += util.calCommunCost(physicalGraph);
                 while (predict4.overUtilizedHostDetection(physicalGraph,i)){
                     double max = Double.MIN_VALUE;
                     int transferVN = 0;

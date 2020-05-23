@@ -9,27 +9,31 @@ import java.util.*;
 
 public class Util {
 
+//    public String physicalGraphPath = "/home/stx/transfer/1000.brite";
+//    public String virtualGraphPath = "/home/stx/transfer/test.brite";
     public String physicalGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\PNet\\1000.brite";
     public String virtualGraphPath = "D:\\Sophomore2\\network topology\\VNM10_1\\BRITE\\VNet\\test.brite";
-    public int VGnum = 3500;
-    public double cpu_mean_center = 1500;
+    public int VGnum = 45000;
+    public double cpu_mean_center = 5000;
     public double cpu_square_center = 300;
-    public double cpu_mean_side = 100;
-    public double cpu_square_side = 30;
-    public double cpu_mean_virtual = 10;
+    public double cpu_mean_side = 1300;
+    public double cpu_square_side = 200;
+    public double cpu_mean_virtual = 6;
     public double cpu_square_virtual = 3;
-    public double mem_mean_center = 1000;
-    public double mem_square_cenetr = 100;
-    public double mem_mean_side = 150;
-    public double mem_square_side = 40;
-    public double mem_mean_virtual = 10;
-    public double mem_square_virtual = 1;
+//    public double mem_mean_center = 1500;
+//    public double mem_square_cenetr = 300;
+//    public double mem_mean_side = 500;
+//    public double mem_square_side = 40;
+//    public double mem_mean_virtual = 10;
+//    public double mem_square_virtual = 1;
     public double edge_mean = 10;
     public double edge_square = 1;
     //CPU资源过载的阈值
     public double hot_threshold = 0.8;
     //coldspot的阈值
     public double cold_threshold = 0.2;
+    public Util(){
+    }
 
     /**
      *     读入物理网络的相关信息
@@ -67,9 +71,9 @@ public class Util {
             for (int i = 0; i < physicalGraph.Node; i ++){
                 temp = reader.readLine();
                 //这些节点为中心节点
-                if(i==10){
+                if(i%100==0){
                     physicalGraph.NodeCapacity[i].cpu = Math.sqrt(cpu_square_center)*random.nextGaussian()+cpu_mean_center;
-                    physicalGraph.NodeCapacity[i].mem = Math.sqrt(mem_square_cenetr)*random.nextGaussian()+mem_mean_center;
+                    physicalGraph.NodeCapacity[i].mem =  physicalGraph.NodeCapacity[i].cpu;
                 }
                 //这些节点为边缘节点
                 else {
@@ -111,44 +115,44 @@ public class Util {
                 }
             }
         }
+        physicalGraph.path = wetherHavePath(physicalGraph);
     }
 
 
-    public void updatePhysicalGraphNode(PhysicalGraph physicalGraph1,PhysicalGraph physicalGraph2,PhysicalGraph physicalGraph3){
-        Random random = new Random();
-        for (int i = 0; i < physicalGraph1.Node; i ++){
-            //这些节点为中心节点
-            if(i==10){
-                double temp1 = Math.sqrt(cpu_square_center)*random.nextGaussian()+cpu_mean_center;
-                double temp2 = Math.sqrt(mem_square_cenetr)*random.nextGaussian()+mem_mean_center;
-                physicalGraph1.NodeCapacity[i].cpu = temp1;
-                physicalGraph1.NodeCapacity[i].mem = temp2;
-                physicalGraph2.NodeCapacity[i].cpu = temp1;
-                physicalGraph2.NodeCapacity[i].mem = temp2;
-                physicalGraph3.NodeCapacity[i].cpu = temp1;
-                physicalGraph3.NodeCapacity[i].mem = temp2;
-            }
-            //这些节点为边缘节点
-            else {
-                double temp1 = Math.sqrt(cpu_square_side)*random.nextGaussian()+cpu_mean_side;
-                double temp2 = Math.sqrt(mem_square_side)*random.nextGaussian()+mem_mean_side;
-                physicalGraph1.NodeCapacity[i].cpu = temp1;
-                physicalGraph1.NodeCapacity[i].mem = temp2;
-                physicalGraph2.NodeCapacity[i].cpu = temp1;
-                physicalGraph2.NodeCapacity[i].mem = temp2;
-                physicalGraph3.NodeCapacity[i].cpu = temp1;
-                physicalGraph3.NodeCapacity[i].mem = temp2;
-            }
-
-        }
-    }
+//    public void updatePhysicalGraphNode(PhysicalGraph physicalGraph1,PhysicalGraph physicalGraph2,PhysicalGraph physicalGraph3){
+//        Random random = new Random();
+//        for (int i = 0; i < physicalGraph1.Node; i ++){
+//            //这些节点为中心节点
+//            if(i==10){
+//                double temp1 = Math.sqrt(cpu_square_center)*random.nextGaussian()+cpu_mean_center;
+//                double temp2 = Math.sqrt(mem_square_cenetr)*random.nextGaussian()+mem_mean_center;
+//                physicalGraph1.NodeCapacity[i].cpu = temp1;
+//                physicalGraph1.NodeCapacity[i].mem = temp2;
+//                physicalGraph2.NodeCapacity[i].cpu = temp1;
+//                physicalGraph2.NodeCapacity[i].mem = temp2;
+//                physicalGraph3.NodeCapacity[i].cpu = temp1;
+//                physicalGraph3.NodeCapacity[i].mem = temp2;
+//            }
+//            //这些节点为边缘节点
+//            else {
+//                double temp1 = Math.sqrt(cpu_square_side)*random.nextGaussian()+cpu_mean_side;
+//                double temp2 = Math.sqrt(mem_square_side)*random.nextGaussian()+mem_mean_side;
+//                physicalGraph1.NodeCapacity[i].cpu = temp1;
+//                physicalGraph1.NodeCapacity[i].mem = temp2;
+//                physicalGraph2.NodeCapacity[i].cpu = temp1;
+//                physicalGraph2.NodeCapacity[i].mem = temp2;
+//                physicalGraph3.NodeCapacity[i].cpu = temp1;
+//                physicalGraph3.NodeCapacity[i].mem = temp2;
+//            }
+//
+//        }
+//    }
 
     /**
      * 构建物理网络的完全图
      * @param physicalGraph
      */
     public void ConstructPhysicalCompleteGraph(PhysicalGraph physicalGraph){
-        physicalGraph.path = wetherHavePath(physicalGraph);
         for (int i = 0; i <physicalGraph.Node ; i++) {
             for (int j = 0; j <physicalGraph.Node ; j++) {
                 //如果物理网络中不相连，为红色
@@ -361,22 +365,22 @@ public class Util {
         }
     }
 
-    public void updateVirtualNode(VirtualGraph[] virtualGraph1,VirtualGraph[] virtualGraph2,VirtualGraph[] virtualGraph3){
-        Random random = new Random();
-        for (int v = 0; v <VGnum ; v++) {
-            for (int i = 0; i < virtualGraph1[v].Node; i ++) {
-                double temp1 = Math.sqrt(cpu_square_virtual) * random.nextGaussian() + cpu_mean_virtual;
-                double temp2 = Math.sqrt(mem_square_virtual) * random.nextGaussian() + mem_mean_virtual;
-                virtualGraph1[v].NodeCapacity[i].cpu = temp1;
-                virtualGraph1[v].NodeCapacity[i].mem = temp2;
-                virtualGraph2[v].NodeCapacity[i].cpu = temp1;
-                virtualGraph2[v].NodeCapacity[i].mem = temp2;
-                virtualGraph3[v].NodeCapacity[i].cpu = temp1;
-                virtualGraph3[v].NodeCapacity[i].mem = temp2;
-            }
-        }
-
-    }
+//    public void updateVirtualNode(VirtualGraph[] virtualGraph1,VirtualGraph[] virtualGraph2,VirtualGraph[] virtualGraph3){
+//        Random random = new Random();
+//        for (int v = 0; v <VGnum ; v++) {
+//            for (int i = 0; i < virtualGraph1[v].Node; i ++) {
+//                double temp1 = Math.sqrt(cpu_square_virtual) * random.nextGaussian() + cpu_mean_virtual;
+//                double temp2 = Math.sqrt(mem_square_virtual) * random.nextGaussian() + mem_mean_virtual;
+//                virtualGraph1[v].NodeCapacity[i].cpu = temp1;
+//                virtualGraph1[v].NodeCapacity[i].mem = temp2;
+//                virtualGraph2[v].NodeCapacity[i].cpu = temp1;
+//                virtualGraph2[v].NodeCapacity[i].mem = temp2;
+//                virtualGraph3[v].NodeCapacity[i].cpu = temp1;
+//                virtualGraph3[v].NodeCapacity[i].mem = temp2;
+//            }
+//        }
+//
+//    }
 
     /**
      * 构建物理网络与虚拟网络的映射
@@ -406,7 +410,7 @@ public class Util {
         for (int i = 0; i <virtualGraph1.Node ; i++) {
             Random rd = new Random();
             int random = rd.nextInt(physicalGraph1.Node);
-            if(random%9==0&&physicalGraph1.VMInPM[random].size()==0){
+            if(random%30==0&&physicalGraph1.VMInPM[random].size()==0){
                 virtualGraph1.VN2PN[i] = random;
                 physicalGraph1.VMInPM[random].add(new VNode(i,virtualGraph1.NodeCapacity[i],virtualGraph1.id));
                 physicalGraph1.nodeLoad[random].cpu += virtualGraph1.NodeCapacity[i].cpu;
@@ -422,7 +426,7 @@ public class Util {
             }
             //判断加入这台虚拟机后物理机资源利用率是否大于1
             else if(physicalGraph1.nodeLoad[random].cpu+virtualGraph1.NodeCapacity[i].cpu<physicalGraph1.NodeCapacity[random].cpu
-            &&physicalGraph1.nodeLoad[random].mem+virtualGraph1.NodeCapacity[i].mem<physicalGraph1.NodeCapacity[random].mem&&random%9!=0){
+            &&random%50!=0){
                 virtualGraph1.VN2PN[i] = random;
                 physicalGraph1.VMInPM[random].add(new VNode(i,virtualGraph1.NodeCapacity[i],virtualGraph1.id));
                 physicalGraph1.nodeLoad[random].cpu += virtualGraph1.NodeCapacity[i].cpu;

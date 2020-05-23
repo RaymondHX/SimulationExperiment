@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact name="SimulationExperiment:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/SimulationExperiment_jar</output-path>
+    <root id="root">
+      <element id="archive" name="SimulationExperiment.jar">
+        <element id="module-output" name="SimulationExperiment" />
+      </element>
+      <element id="file-copy" path="D:/Downloads/Jama-1.0.3.jar" />
+    </root>
+  </artifact>
+</component>

@@ -27,13 +27,17 @@ public class Predict4 {
         if(physicalGraph.nodeLoad[node].cpu<physicalGraph.NodeCapacity[node].cpu*hotThreshold){
             return false;
         }
-        for (int k = 0; k <6 ; k++) {
-            double temp = MUP.UP(physicalGraph,k+1,t+k+1,node);
-            if(temp<physicalGraph.NodeCapacity[node].cpu*hotThreshold){
-                return false;
-            }
+//        for (int k = 0; k <6 ; k++) {
+//            double temp = MUP.UP(physicalGraph,k+1,t+k+1,node);
+//            if(temp<physicalGraph.NodeCapacity[node].cpu*hotThreshold){
+//                return false;
+//            }
+//        }
+        else {
+            return true;
         }
-        return true;
+
+
     }
 
     /**
@@ -46,13 +50,15 @@ public class Predict4 {
         if(physicalGraph.nodeLoad[node].cpu>physicalGraph.NodeCapacity[node].cpu*coldThreshold){
             return false;
         }
-        for (int k = 0; k <6 ; k++) {
-            double temp = MUP.UP(physicalGraph,k+1,t,node);
-            if(temp>physicalGraph.NodeCapacity[node].cpu*coldThreshold){
-                return false;
-            }
+        else {
+            return true;
         }
-        return true;
+//        for (int k = 0; k <6 ; k++) {
+//            double temp = MUP.UP(physicalGraph,k+1,t,node);
+//            if(temp>physicalGraph.NodeCapacity[node].cpu*coldThreshold){
+//                return false;
+//            }
+//        }
     }
 
 

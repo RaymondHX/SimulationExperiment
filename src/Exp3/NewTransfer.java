@@ -12,16 +12,15 @@ public class NewTransfer {
     public PhysicalGraph physicalGraph;
     public VirtualGraph[] virtualGraphs;
     public double migrationCost = 0;
-    public double communicationCost = 0;
     public int pointer = 0;
     public int migrationTime = 0;
+    public double communicationCost = 0;
     public double[] dis;
-
+    Util util = new Util();
     public  NewTransfer(PhysicalGraph physicalGraph, VirtualGraph virtualGraphs[]){
-        Util util = new Util();
+
         this.physicalGraph = physicalGraph;
         this.virtualGraphs = virtualGraphs;
-        communicationCost = util.calCommunCost(physicalGraph);
     }
     public void TransferVirtualNode(int VGnum,int virtualNode,int newPhysicalNode){
         migrationTime++;
@@ -52,32 +51,22 @@ public class NewTransfer {
     //选出需要迁移的节点和迁移到的节点
     public void Migration(PhysicalGraph physicalGraph){
         Util util = new Util();
-        communicationCost +=util.calCommunCost(physicalGraph);
             for (int i = 0; i <physicalGraph.Node ; i++) {
                 if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
-                    VNode vnode = findMaxCpuVirtualMachine(physicalGraph.VMInPM[i]);
-                    dis = util.FindMinPath(physicalGraph,i);
-                    int destNode = 0;
-                    double minDis = Double.MAX_VALUE;
-                    //找出图中哪些节点满足迁移条件
-                    for (int j = 0; j <physicalGraph.Node ; j++) {
-                        if((physicalGraph.nodeLoad[j].cpu+vnode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8&&dis[j]!=0){
-                            if(dis[j]<minDis){
-                                minDis = dis[j];
-                                destNode = j;
+                    communicationCost+=util.calCommunCost(physicalGraph);
+                    while(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
+                        VNode vnode = findMaxCpuVirtualMachine(physicalGraph.VMInPM[i]);
+                        //找出图中哪些节点满足迁移条件
+                        for (int j = 0; j <physicalGraph.Node ; j++) {
+                            if((physicalGraph.nodeLoad[j].cpu+vnode.load.cpu)/physicalGraph.NodeCapacity[j].cpu<0.8&&physicalGraph.path[i][j]){
+                                dis = util.FindMinPath(physicalGraph,i);
+                                TransferVirtualNode(vnode.VGnum,vnode.id,j);
+                                break;
                             }
                         }
-                    }
-                    TransferVirtualNode(vnode.VGnum,vnode.id,destNode);
-                    if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu<0.8){
-                        break;
-                    }
-                    if(physicalGraph.nodeLoad[i].cpu/physicalGraph.NodeCapacity[i].cpu>0.8){
-                        i--;
-                    }
 
+                    }
                 }
-
             }
     }
 
